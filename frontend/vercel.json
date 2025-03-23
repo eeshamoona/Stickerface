@@ -1,7 +1,7 @@
 {
-  "redirects": [
+  "rewrites": [
     {
-      "source": "/spells",
+      "source": "/spell",
       "destination": "/sticker/stress-spell",
       "permanent": true
     },
