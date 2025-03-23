@@ -1,0 +1,24 @@
+{
+  "redirects": [
+    {
+      "source": "/spells",
+      "destination": "/sticker/spell",
+      "permanent": true
+    },
+    {
+      "source": "/stickers",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/fortune",
+      "destination": "/sticker/fortune",
+      "permanent": true
+    },
+    {
+      "source": "/pet",
+      "destination": "/sticker/pet",
+      "permanent": true
+    }
+  ]
+}
