@@ -2,23 +2,19 @@
   "rewrites": [
     {
       "source": "/spell",
-      "destination": "/sticker/stress-spell",
-      "permanent": true
+      "destination": "/sticker/stress-spell"
     },
     {
       "source": "/stickers",
-      "destination": "/",
-      "permanent": true
+      "destination": "/"
     },
     {
       "source": "/fortune",
-      "destination": "/sticker/fortune-teller",
-      "permanent": true
+      "destination": "/sticker/fortune-teller"
     },
     {
       "source": "/pet",
-      "destination": "/sticker/happy-pet",
-      "permanent": true
+      "destination": "/sticker/happy-pet"
     }
   ]
 }
