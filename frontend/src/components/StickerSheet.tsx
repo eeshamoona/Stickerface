@@ -1,5 +1,5 @@
 // src/components/StickerSheet.tsx
-import type { Sticker } from "../types";
+
 import { stickers } from "../lib/data";
 import StickerComponent from "./Sticker";
 

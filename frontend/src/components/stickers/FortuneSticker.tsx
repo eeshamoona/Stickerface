@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Engine, Render, World, Bodies, Body, Events, Composite, Mouse, MouseConstraint } from 'matter-js';
+import { Engine, Render, World, Bodies, Body, Events, Mouse, MouseConstraint } from 'matter-js';
 
 interface FortuneCookie {
   body: Body;
@@ -32,7 +32,7 @@ export default function FortuneSticker() {
   const engineRef = useRef<Engine | null>(null);
   const renderRef = useRef<Render | null>(null);
   const cookiesRef = useRef<FortuneCookie[]>([]);
-  const mouseConstraintRef = useRef<any>(null);
+  const mouseConstraintRef = useRef<MouseConstraint | null>(null);
   
   const [openedFortune, setOpenedFortune] = useState<string | null>(null);
   const [gameStarted, setGameStarted] = useState(false);

@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { animations } from "../lib/animations";
 import type { Sticker } from "../types";
@@ -37,11 +38,13 @@ export default function StickerComponent({ sticker, isSheet = true }: StickerPro
     >
       <div className="sticker-content z-10 flex flex-col items-center justify-center p-2">
         <div className="w-12 h-12 flex items-center justify-center">
-          <img
+          <Image
             src={sticker.imageSrc}
             alt={sticker.name}
+            width={48}
+            height={48}
             className="w-full h-full object-contain"
-            style={{ filter: "invert(1)", maxWidth: "100%", maxHeight: "100%" }}
+            style={{ filter: "invert(1)" }}
           />
         </div>
       </div>
