@@ -2,7 +2,7 @@
   "redirects": [
     {
       "source": "/spells",
-      "destination": "/sticker/spell",
+      "destination": "/sticker/stress-spell",
       "permanent": true
     },
     {
@@ -12,12 +12,12 @@
     },
     {
       "source": "/fortune",
-      "destination": "/sticker/fortune",
+      "destination": "/sticker/fortune-teller",
       "permanent": true
     },
     {
       "source": "/pet",
-      "destination": "/sticker/pet",
+      "destination": "/sticker/happy-pet",
       "permanent": true
     }
   ]
