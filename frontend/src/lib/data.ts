@@ -29,6 +29,15 @@ export const stickers: Sticker[] = [
     animation: "pulse"
   },
   {
+    id: "lemonomics",
+    name: "Lemonomics",
+    description: "Run your own lemonade stand business",
+    color: "#FFDA3D",
+    type: "lemonomics",
+    imageSrc: "/images/lemonomics.svg",
+    animation: "bounce"
+  },
+  {
     id: "weather-wizard",
     name: "Weather Wizard",
     description: "Shows weather with magical animations",

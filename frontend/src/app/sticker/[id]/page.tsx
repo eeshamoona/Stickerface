@@ -8,6 +8,7 @@ import { getSticker } from "../../../lib/data";
 
 // Import individual sticker components
 import FortuneSticker from "../../../components/stickers/FortuneSticker";
+import LemonomicsSticker from "../../../components/stickers/LemonomicsSticker";
 import PetSticker from "../../../components/stickers/PetSticker";
 import SpellSticker from "../../../components/stickers/SpellSticker";
 
@@ -46,6 +47,8 @@ export default function StickerPage() {
       case "music":
       case "game":
       case "art":
+      case "lemonomics":
+        return <LemonomicsSticker />;
       default:
         return <div>Coming soon!</div>;
     }

@@ -1,0 +1,23 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Lemonade Cup Background -->
+  <path d="M60 180H140C145 180 150 175 155 165L170 120H30L45 165C50 175 55 180 60 180Z" fill="#FFDA3D" stroke="#D97706" stroke-width="3"/>
+  
+  <!-- Cup shine -->
+  <path d="M60 160C70 165 90 168 110 168C130 168 145 165 155 160" stroke="white" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+  
+  <!-- Straw -->
+  <path d="M90 105V50C90 45 95 40 100 40C105 40 110 45 110 50V105" fill="#EF4444" stroke="#B91C1C" stroke-width="2"/>
+  
+  <!-- Lemon slices -->
+  <circle cx="70" cy="130" r="15" fill="#FEF3C7" stroke="#D97706" stroke-width="2"/>
+  <circle cx="70" cy="130" r="10" fill="none" stroke="#D97706" stroke-width="1"/>
+  <circle cx="70" cy="130" r="5" fill="#D97706"/>
+  
+  <circle cx="130" cy="135" r="12" fill="#FEF3C7" stroke="#D97706" stroke-width="2"/>
+  <circle cx="130" cy="135" r="8" fill="none" stroke="#D97706" stroke-width="1"/>
+  <circle cx="130" cy="135" r="4" fill="#D97706"/>
+  
+  <!-- Dollar sign money -->
+  <circle cx="160" cy="60" r="25" fill="#10B981" stroke="#047857" stroke-width="3"/>
+  <path d="M160 45V75M155 50C155 45 165 45 165 50C165 55 155 55 155 60C155 65 165 65 165 70" stroke="white" stroke-width="4" stroke-linecap="round"/>
+</svg>
