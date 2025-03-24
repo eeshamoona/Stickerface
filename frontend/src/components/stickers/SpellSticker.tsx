@@ -21,40 +21,40 @@
 
 import { useEffect, useState } from "react";
 
-// Whimsical incantation fragments (super detailed & funny!)
+// Whimsical incantation fragments (rhyming, detailed, & funny!)
 const incantationOpeners = [
-  "A sleepy wizard yawns loudly",
-  "Three tiny dragons sneeze glitter",
-  "A talking unicorn whispers sassily",
-  "The ghost of a sandwich giggles",
-  "An enchanted teapot whistles suspiciously",
+  "Wizard yawns and sleepy sighs",
+  "Dragons sneeze with glittery eyes",
+  "Unicorn whispers secrets deep",
+  "Ghostly sandwich giggles creep",
+  "Teapot whistles tunes bizarre",
 ];
 
-const incantationVerbs = ["inside", "beneath", "behind", "on top of", "around"];
+const incantationVerbs = ["within", "beneath", "behind", "around", "beyond"];
 
 const incantationNouns = [
-  "Grandma's secret cookie jar",
-  "the socks you lost in the dryer",
-  "the legendary couch cushion",
-  "your messy bedroom closet",
-  "the world's smallest trampoline",
+  "Grandma's jar of cookie dreams",
+  "Lost socks caught in laundry seams",
+  "Cushions hiding endless coins",
+  "Closet chaos re-appoints",
+  "Trampolines for fleas alone",
 ];
 
 const incantationClosers = [
-  "turning anxiety into pizza cravings",
-  "summoning oddly specific confidence",
-  "transforming worries into cat videos",
-  "making awkwardness strangely endearing",
-  "replacing stress with spontaneous dance moves",
+  "turning worries into pies",
+  "summoning courage, surprise!",
+  "fears transformed to dancing cats",
+  "awkward charms and silly chats",
+  "stress replaced by quirky moves",
 ];
 
 // Affirmations (funny & specific!)
 const possibleAffirmations = [
-  "You handle stress better than a raccoon handles trash cans!",
-  "Your charm is stronger than the Wi-Fi at grandma’s house.",
-  "You radiate confidence brighter than a cellphone screen at 3 AM.",
-  "You’re calmer than a cat ignoring its owner.",
-  "You’ve got this better than autocorrect has got your texts!",
+  "You're a master of stress-management - like a ninja dodging couch cushions!",
+  "Your awesomeness is contagious - spread it like a meme!",
+  "You're braver than a firefighter rescuing a cat from a tree!",
+  "Your smile is more powerful than a selfie on a good hair day!",
+  "You're more resilient than a rubber band stretched to its limits!",
 ];
 
 // Rarities
