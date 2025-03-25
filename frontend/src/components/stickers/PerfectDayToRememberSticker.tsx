@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { CharacterConfig } from "../../lib/data";
 
 // Props: characterSlug (string), characterData (object containing name, bgColor, avatarSVG, activityList [{ id, label, svg }])
@@ -163,7 +164,7 @@ export default function PerfectDayToRememberSticker({
         {/* Intro message */}
         {gameState === "waiting" && (
           <div className="text-base italic mb-4">
-            "Here's what I'd do on my perfect day... can you remember it?"
+            &quot;Here&apos;s what I&apos;d do on my perfect day... can you remember it?&quot;
           </div>
         )}
 
@@ -181,9 +182,11 @@ export default function PerfectDayToRememberSticker({
                     key={`${id}-${index}`}
                     className="p-2 bg-blue-50 rounded-lg"
                   >
-                    <img
-                      src={activity?.svg}
-                      alt={activity?.label}
+                    <Image
+                      src={activity?.svg || ""}
+                      alt={activity?.label || ""}
+                      width={48}
+                      height={48}
                       className="w-12 h-12"
                     />
                   </div>
@@ -207,9 +210,11 @@ export default function PerfectDayToRememberSticker({
                     key={`input-${index}`}
                     className="p-2 bg-green-50 rounded-lg"
                   >
-                    <img
-                      src={activity?.svg}
-                      alt={activity?.label}
+                    <Image
+                      src={activity?.svg || ""}
+                      alt={activity?.label || ""}
+                      width={40}
+                      height={40}
                       className="w-10 h-10"
                     />
                   </div>
@@ -237,9 +242,11 @@ export default function PerfectDayToRememberSticker({
                   className="p-4 rounded-xl transition-all bg-gray-50 hover:bg-gray-100 shadow-sm"
                   disabled={gameState !== "userTurn"}
                 >
-                  <img
+                  <Image
                     src={activity.svg}
                     alt={activity.label}
+                    width={64}
+                    height={64}
                     className="w-16 h-16 mx-auto mb-2"
                   />
                   <div className="text-sm font-medium text-gray-800">
@@ -349,9 +356,11 @@ export default function PerfectDayToRememberSticker({
         </div>
       </div>
       <div className="flex-col items-left justify-left w-full">
-        <img
+        <Image
           src={character.imageSrc}
           alt={character.name}
+          width={80}
+          height={80}
           className="w-20 h-20 mr-3"
         />
         {/* <div className="text-gray-800 font-medium text-left">

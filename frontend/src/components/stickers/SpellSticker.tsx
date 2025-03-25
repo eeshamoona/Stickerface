@@ -86,7 +86,6 @@ function StressSpellSticker() {
   // Incantation puzzle states
   const [shuffledWords, setShuffledWords] = useState<string[]>([]);
   const [chosenWords, setChosenWords] = useState<string[]>([]);
-  const [incantationFull, setIncantationFull] = useState("");
 
   // Final results
   const [finalAffirmation, setFinalAffirmation] = useState("");
@@ -144,7 +143,6 @@ function StressSpellSticker() {
   const handleGoToIncantationGame = () => {
     // Generate a silly incantation
     const incantation = generateIncantation();
-    setIncantationFull(incantation);
 
     // Remove punctuation for the puzzle, split into words
     const puzzleWords = incantation
@@ -225,7 +223,6 @@ function StressSpellSticker() {
     setSelectedIngredients({});
     setShuffledWords([]);
     setChosenWords([]);
-    setIncantationFull("");
     setFinalAffirmation("");
     setSpellRarity("");
     setMostUsedIngredient("");

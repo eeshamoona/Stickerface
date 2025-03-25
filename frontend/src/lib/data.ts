@@ -94,9 +94,6 @@ export const getSticker = (id: string): Sticker | undefined => {
   return stickers.find((sticker) => sticker.id === id);
 };
 
-// Define a type for valid character slugs
-type CharacterSlug = "capybara" | string; // Add more character types as needed
-
 // Define a type for the characters object with an index signature
 interface CharacterDictionary {
   [key: string]: CharacterConfig;

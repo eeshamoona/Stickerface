@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import Image from "next/image";
 
 // Define image paths for the button states
 const DoNotPushDown = "/images/DoNotPush-Down.svg";
@@ -91,9 +92,7 @@ const statuses = [
   "tired of being perceived",
 ];
 
-function shuffle<T>(array: T[]): T[] {
-  return array.sort(() => 0.5 - Math.random());
-}
+// Removed unused shuffle function
 
 function pickRandom<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)];
@@ -193,25 +192,31 @@ export default function DoNotPressButton() {
     switch (isPressed) {
       case "down":
         return (
-          <img
+          <Image
             src={DoNotPushDown}
             alt="Do Not Push Button - Down"
+            width={320}
+            height={320}
             className="w-80 h-80"
           />
         );
       case "midway":
         return (
-          <img
+          <Image
             src={DoNotPushMidway}
             alt="Do Not Push Button - Midway"
+            width={320}
+            height={320}
             className="w-80 h-80"
           />
         );
       default:
         return (
-          <img
+          <Image
             src={DoNotPushFull}
             alt="Do Not Push Button - Full"
+            width={320}
+            height={320}
             className="w-80 h-80"
           />
         );
