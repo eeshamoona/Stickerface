@@ -2,17 +2,21 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getSticker } from "../../../lib/data";
+import { getCharacterConfig, getSticker } from "../../../lib/data";
 
 // Import individual sticker components
 import FortuneSticker from "../../../components/stickers/FortuneSticker";
+import PerfectDayToRememberSticker from "../../../components/stickers/PerfectDayToRememberSticker";
 import PetSticker from "../../../components/stickers/PetSticker";
 import SpellSticker from "../../../components/stickers/SpellSticker";
 
 export default function StickerPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const slug = searchParams.get("friend");
+  const character = getCharacterConfig(slug ?? "capybara");
   const { id } = useParams() as { id: string };
   const sticker = getSticker(id);
   const [mounted, setMounted] = useState(false);
@@ -46,6 +50,8 @@ export default function StickerPage() {
       case "music":
       case "game":
       case "art":
+      case "perfect-day":
+        return <PerfectDayToRememberSticker character={character} />;
       default:
         return <div>Coming soon!</div>;
     }
