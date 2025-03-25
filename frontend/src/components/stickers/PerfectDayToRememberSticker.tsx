@@ -14,11 +14,10 @@ export default function PerfectDayToRememberSticker({
     message: string;
     success: boolean;
   } | null>(null);
-  const [isShowingSequence, setIsShowingSequence] = useState(false);
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [gameState, setGameState] = useState<
-    "waiting" | "showing" | "userTurn" | "failed"
+    "waiting" | "showing" | "userTurn" | "success" | "failed"
   >("waiting");
+  const [countdownProgress, setCountdownProgress] = useState(100);
   const [highScore, setHighScore] = useState(0);
 
   // Pull high score from localStorage
@@ -43,27 +42,27 @@ export default function PerfectDayToRememberSticker({
   // Function to show the sequence to the user
   const showSequence = () => {
     if (gameState !== "waiting") return;
-
     setGameState("showing");
-    setIsShowingSequence(true);
-    let currentIndex = 0;
+    setCountdownProgress(100);
 
-    const intervalId = setInterval(() => {
-      if (currentIndex < sequence.length) {
-        setActiveIndex(currentIndex);
+    // Start countdown animation
+    const totalTime = 3000; // 3 seconds
+    const interval = 50; // Update every 50ms
+    const steps = totalTime / interval;
+    const decrementPerStep = 100 / steps;
 
-        // Clear highlight after a short delay
-        setTimeout(() => {
-          setActiveIndex(null);
-        }, 500);
+    const countdownInterval = setInterval(() => {
+      setCountdownProgress((prev) => {
+        const newValue = prev - decrementPerStep;
+        return newValue > 0 ? newValue : 0;
+      });
+    }, interval);
 
-        currentIndex++;
-      } else {
-        clearInterval(intervalId);
-        setIsShowingSequence(false);
-        setGameState("userTurn");
-      }
-    }, 1000);
+    // After showing the sequence for a few seconds, switch to user turn
+    setTimeout(() => {
+      clearInterval(countdownInterval);
+      setGameState("userTurn");
+    }, totalTime);
   };
 
   const handleUserTap = (id: string) => {
@@ -79,7 +78,7 @@ export default function PerfectDayToRememberSticker({
         const failMessages = [
           "Oops, not quite! But that still sounds fun!",
           "Haha, close enough for a pretty good day!",
-          "Hey, I’d still hang out with you if we did that!",
+          "Hey, I'd still hang out with you if we did that!",
         ];
         setFeedback({
           message:
@@ -95,9 +94,9 @@ export default function PerfectDayToRememberSticker({
     // If complete and correct
     if (nextInput.length === sequence.length) {
       const successMessages = [
-        "You got it!! That really was a perfect day!",
-        "Whoa!! You remembered everything!",
-        "Yes!! That’s exactly how I imagined it!",
+        "You got it! That really was a perfect day!",
+        "Whoa! You remembered everything!",
+        "Yes! That's exactly how I imagined it!",
       ];
       const newScore = Math.max(highScore, sequence.length);
       setHighScore(newScore);
@@ -107,19 +106,41 @@ export default function PerfectDayToRememberSticker({
           successMessages[Math.floor(Math.random() * successMessages.length)],
         success: true,
       });
+      setGameState("success");
       // Automatically start next round after a short delay when successful
       setTimeout(() => {
         setRound((r) => r + 1);
         setGameState("waiting");
-      }, 1500);
+      }, 2000);
     }
+  };
+
+  // Helper function to get activity by ID
+  const getActivityById = (id: string) => {
+    return character.activities.find((activity) => activity.id === id);
   };
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center p-4"
+      className="min-h-screen flex flex-col items-center justify-center p-4 text-black"
       style={{ backgroundColor: character.bgColor }}
     >
+      <div className="text-3xl font-semibold mb-3 tracking-tight">
+        A Perfect Day to Remember
+      </div>
+
+      {/* Current Score Display */}
+      <div className="w-full mb-0 flex items-center justify-evenly gap-10">
+        <div className="flex items-center space-x-2">
+          <span className="text-md font-light text-gray-800">Round</span>
+          <span className="text-md text-gray-800">{round}</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <span className="text-md font-light text-gray-800">High Score</span>
+          <span className="text-md text-gray-800">{highScore}</span>
+        </div>
+      </div>
+
       <div
         className="w-full max-w-md rounded-2xl p-8 shadow-md bg-white text-center text-black"
         style={{
@@ -127,73 +148,113 @@ export default function PerfectDayToRememberSticker({
             '"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif',
         }}
       >
-        <div className="text-3xl font-semibold mb-3 tracking-tight">
-          A Perfect Day to Remember
-        </div>
-
-        <div className="flex items-center justify-center mb-5">
-          <img
-            src={character.imageSrc}
-            alt={character.name}
-            className="w-20 h-20 mr-3"
-          />
-          <div className="text-gray-800 font-medium text-left">
-            {character.name} says:
-          </div>
-        </div>
-
-        {feedback ? (
+        {/* Feedback message */}
+        {(gameState === "success" || gameState === "failed") && feedback && (
           <div className="text-lg font-medium mb-4">
             {feedback.message}
             <div className="text-sm mt-2">
               {feedback.success
                 ? "Wait… actually—I just thought of an even better one!"
-                : "Wanna try again? I’ve got another perfect one!"}
+                : "Wanna try again? I've got another perfect one!"}
             </div>
-          </div>
-        ) : (
-          <div className="text-base italic mb-4">
-            "Here’s what I’d do on my perfect day... can you remember it?"
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-5 mb-8">
-          {character.activities.map((activity) => (
-            <button
-              key={activity.id}
-              onClick={() => handleUserTap(activity.id)}
-              className={`p-4 rounded-xl transition-all ${
-                activeIndex !== null && sequence[activeIndex] === activity.id
-                  ? "bg-blue-50 ring-2 ring-blue-400 transform scale-105"
-                  : "bg-gray-50 hover:bg-gray-100 shadow-sm"
-              }`}
-              disabled={isShowingSequence}
-              style={{
-                transition: "all 0.2s ease-in-out",
-                boxShadow:
-                  activeIndex !== null && sequence[activeIndex] === activity.id
-                    ? "0 0 15px rgba(59, 130, 246, 0.3)"
-                    : "",
-              }}
-            >
-              <img
-                src={activity.svg}
-                alt={activity.label}
-                className="w-20 h-20 mx-auto mb-2"
-              />
-              <div className="text-sm font-medium text-gray-800">
-                {activity.label}
-              </div>
-            </button>
-          ))}
-        </div>
+        {/* Intro message */}
+        {gameState === "waiting" && (
+          <div className="text-base italic mb-4">
+            "Here's what I'd do on my perfect day... can you remember it?"
+          </div>
+        )}
+
+        {/* Sequence display */}
+        {gameState === "showing" && (
+          <div className="mb-6">
+            <div className="text-base font-medium mb-3">
+              Remember this sequence:
+            </div>
+            <div className="flex flex-wrap justify-center gap-3 mb-4">
+              {sequence.map((id, index) => {
+                const activity = getActivityById(id);
+                return (
+                  <div
+                    key={`${id}-${index}`}
+                    className="p-2 bg-blue-50 rounded-lg"
+                  >
+                    <img
+                      src={activity?.svg}
+                      alt={activity?.label}
+                      className="w-12 h-12"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* User selection options */}
+        {gameState === "userTurn" && (
+          <div className="mb-6">
+            <div className="text-base font-medium mb-3">
+              Now repeat the sequence:
+            </div>
+            <div className="flex flex-wrap justify-center gap-2 mb-3">
+              {userInput.map((id, index) => {
+                const activity = getActivityById(id);
+                return (
+                  <div
+                    key={`input-${index}`}
+                    className="p-2 bg-green-50 rounded-lg"
+                  >
+                    <img
+                      src={activity?.svg}
+                      alt={activity?.label}
+                      className="w-10 h-10"
+                    />
+                  </div>
+                );
+              })}
+              {Array(sequence.length - userInput.length)
+                .fill(0)
+                .map((_, index) => (
+                  <div
+                    key={`empty-${index}`}
+                    className="p-2 bg-gray-100 rounded-lg"
+                  >
+                    <div className="w-10 h-10 flex items-center justify-center text-gray-400">
+                      ?
+                    </div>
+                  </div>
+                ))}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {character.activities.map((activity) => (
+                <button
+                  key={activity.id}
+                  onClick={() => handleUserTap(activity.id)}
+                  className="p-4 rounded-xl transition-all bg-gray-50 hover:bg-gray-100 shadow-sm"
+                  disabled={gameState !== "userTurn"}
+                >
+                  <img
+                    src={activity.svg}
+                    alt={activity.label}
+                    className="w-16 h-16 mx-auto mb-2"
+                  />
+                  <div className="text-sm font-medium text-gray-800">
+                    {activity.label}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex justify-between items-center">
-          <div className="text-sm font-medium text-gray-700">
-            <span className="text-xs uppercase tracking-wide text-gray-500">
-              High Score:
-            </span>{" "}
-            {highScore}
+          <div className="text-sm font-medium text-gray-700 opacity-0">
+            {/* Hidden element to maintain layout balance */}
+            Placeholder
           </div>
 
           {gameState === "waiting" && (
@@ -208,23 +269,35 @@ export default function PerfectDayToRememberSticker({
 
           {gameState === "showing" && (
             <div
-              className="px-5 py-2.5 bg-amber-500 text-white rounded-full font-medium flex items-center"
+              className="px-5 py-2.5 bg-amber-500 text-white rounded-full font-medium flex items-center relative overflow-hidden"
               style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)" }}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 mr-1.5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                <path
-                  fillRule="evenodd"
-                  d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Watch carefully
+              {/* Progress bar overlay */}
+              <div
+                className="absolute top-0 left-0 h-full bg-orange-500 transition-all duration-100 ease-linear"
+                style={{
+                  width: `${100 - countdownProgress}%`,
+                  transition: "width 50ms linear",
+                }}
+              ></div>
+
+              {/* Content (always visible above the progress bar) */}
+              <div className="flex items-center z-10 relative">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 mr-1.5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                  <path
+                    fillRule="evenodd"
+                    d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Memorize
+              </div>
             </div>
           )}
 
@@ -274,6 +347,16 @@ export default function PerfectDayToRememberSticker({
             </button>
           )}
         </div>
+      </div>
+      <div className="flex-col items-left justify-left w-full">
+        <img
+          src={character.imageSrc}
+          alt={character.name}
+          className="w-20 h-20 mr-3"
+        />
+        {/* <div className="text-gray-800 font-medium text-left">
+          {character.name}
+        </div> */}
       </div>
     </div>
   );

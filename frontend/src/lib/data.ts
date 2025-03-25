@@ -74,10 +74,19 @@ export const stickers: Sticker[] = [
     id: "perfect-day-game",
     name: "A Perfect Day to Remember",
     description: "A memory game about the perfect day",
-    color: "#F9A826",
+    color: "#333333",
     type: "perfect-day",
     imageSrc: "/images/perfect-day.svg",
     animation: "bounce",
+  },
+  {
+    id: "do-not-press-button",
+    name: "Do Not Press Button",
+    description: "A button that you should not press",
+    color: "#FF0000",
+    type: "button",
+    imageSrc: "/images/button.svg",
+    animation: "pulse",
   },
 ];
 

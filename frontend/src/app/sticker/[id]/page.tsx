@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { getCharacterConfig, getSticker } from "../../../lib/data";
 
 // Import individual sticker components
+import DoNotPressButton from "../../../components/stickers/DoNotPressButton";
 import FortuneSticker from "../../../components/stickers/FortuneSticker";
 import PerfectDayToRememberSticker from "../../../components/stickers/PerfectDayToRememberSticker";
 import PetSticker from "../../../components/stickers/PetSticker";
@@ -52,6 +53,8 @@ export default function StickerPage() {
       case "art":
       case "perfect-day":
         return <PerfectDayToRememberSticker character={character} />;
+      case "button":
+        return <DoNotPressButton />;
       default:
         return <div>Coming soon!</div>;
     }

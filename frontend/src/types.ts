@@ -13,7 +13,8 @@ export interface Sticker {
     | "game"
     | "art"
     | "spell"
-    | "perfect-day";
+    | "perfect-day"
+    | "button";
   imageSrc: string;
   animation?: "bounce" | "pulse" | "wiggle" | "spin" | "float";
 }
