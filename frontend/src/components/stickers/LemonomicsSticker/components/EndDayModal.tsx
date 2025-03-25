@@ -28,7 +28,7 @@ const EndDayModal: React.FC<EndDayModalProps> = ({ gameState, onEndDay }) => {
 
   return (
     <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-10">
-      <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl">
+      <div className="bg-white rounded-xl p-6 w-full max-w-sm max-h-[90vh] overflow-y-auto shadow-xl">
         <h2 className="text-xl font-bold text-center mb-3 text-black">
           End of Day {gameState.currentDay}
         </h2>
@@ -90,7 +90,7 @@ const EndDayModal: React.FC<EndDayModalProps> = ({ gameState, onEndDay }) => {
           {/* Customer List with Ratings */}
           <div className="mb-4">
             <h3 className="text-sm font-medium mb-2 text-black">Customer Ratings:</h3>
-            <div className="max-h-40 overflow-y-auto pr-1 bg-yellow-50 rounded-lg">
+            <div className="max-h-60 overflow-y-auto pr-1 bg-yellow-50 rounded-lg">
               {gameState.customers.map((customer) => (
                 <div 
                   key={customer.id} 
