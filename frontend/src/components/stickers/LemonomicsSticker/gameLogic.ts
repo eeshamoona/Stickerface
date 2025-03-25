@@ -118,7 +118,6 @@ export const calculateRating = (
   const priceDifference = expectedPrice - price; //Can we +- 0.25 or +- 0.5 or 0
   // If the price is the same or lower than expected, the rating is 5, otherwise reduce 1 star for
   // each 0.25 that the price is higher than expected
-  const priceDifferenceRatio = Math.abs(priceDifference) / expectedPrice;
 
   if (priceDifference > 0) {
     return rating;

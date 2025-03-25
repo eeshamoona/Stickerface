@@ -1,5 +1,5 @@
 import React from 'react';
-import { Customer, GameState } from '../types';
+import { GameState } from '../types';
 import { MAX_DAYS } from '../constants';
 
 interface EndDayModalProps {

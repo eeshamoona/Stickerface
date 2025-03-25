@@ -18,7 +18,7 @@ const GameStats: React.FC<GameStatsProps> = ({ currentDay, dailyProfit }) => {
 
       <div className="flex justify-between">
         <span className="text-xs font-medium text-black">
-          Today's profit:
+          Today&apos;s profit:
         </span>
         <span className="text-xs text-black">
           ${dailyProfit.toFixed(2)}

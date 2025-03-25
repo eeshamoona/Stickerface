@@ -88,7 +88,7 @@ function SpellSticker() {
   // Incantation puzzle states
   const [shuffledWords, setShuffledWords] = useState<string[]>([]);
   const [chosenWords, setChosenWords] = useState<string[]>([]);
-  const [incantationFull, setIncantationFull] = useState("");
+  // Removed unused incantationFull variable
 
   // Final results
   const [finalAffirmation, setFinalAffirmation] = useState("");
@@ -147,7 +147,6 @@ function SpellSticker() {
   const handleGoToIncantationGame = () => {
     // Generate a silly incantation
     const incantation = generateIncantation();
-    setIncantationFull(incantation);
 
     // Remove punctuation for the puzzle, split into words
     const puzzleWords = incantation
@@ -228,7 +227,7 @@ function SpellSticker() {
     setSelectedIngredients({});
     setShuffledWords([]);
     setChosenWords([]);
-    setIncantationFull("");
+    // Removed unused setIncantationFull call
     setFinalAffirmation("");
     setSpellRarity("");
     setMostUsedIngredient("");
@@ -309,7 +308,7 @@ Stats:
         setActiveThemeColor(ingredient.color);
       }
     }
-  }, [selectedIngredients, ingredients]);
+  }, [selectedIngredients]);
 
   const renderIngredientSelection = () => {
     
@@ -456,7 +455,7 @@ Stats:
       {/* Preview of the incantation */}
       {chosenWords.length > 0 && (
         <div className="w-full bg-gray-50 rounded-lg p-3 mb-6 text-center italic text-gray-700">
-          "{getFinalIncantation()}"
+          &quot;{getFinalIncantation()}&quot;
         </div>
       )}
 
@@ -584,7 +583,7 @@ Stats:
               <div className="flex-1 flex flex-col items-center justify-center w-full">
                 <h3 className="font-medium text-gray-500 uppercase text-xs mb-1">Incantation</h3>
                 <p className="mb-3 italic text-gray-800 text-sm px-2 text-center">
-                  "{getFinalIncantation()}"
+                  &quot;{getFinalIncantation()}&quot;
                 </p>
                 
                 <h3 className="font-medium text-gray-500 uppercase text-xs mb-1">Affirmation</h3>
