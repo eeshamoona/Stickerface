@@ -1,329 +1,349 @@
-import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+// Import content from the new file
+import {
+  getRandomTemplateMessage,
+  milestoneMessages,
+  uniqueMessages,
+} from "@/lib/do-not-push-button";
 
-// Define image paths for the button states
+// Define image paths (keep these here or move to constants file)
 const DoNotPushDown = "/images/DoNotPush-Down.svg";
 const DoNotPushFull = "/images/DoNotPush-Full.svg";
 const DoNotPushMidway = "/images/DoNotPush-Midway.svg";
 
 // Define sound paths
 const CLICK_SOUND = "/sounds/mouse-click.mp3";
-const POP_SOUND = "/sounds/bubble-pop.mp3";
+const POP_SOUND = "/sounds/bubble-pop.mp3"; // Keep pop for jump
 
-const milestoneMessages: Record<number, string> = {
-  1: "Seriously. Don’t press it again.",
-  5: "That’s five presses. You’ve got commitment issues.",
-  10: "The council has been notified.",
-  25: "You have now reached level: Button Gremlin.",
-  50: "Button status: mildly traumatized.",
-  100: "You’ve pressed it 100 times. Are you okay?",
-};
-
-const templates = [
-  "You've now pressed the button [number] times. That's [adjective].",
-  "That press just [verb] [noun].",
-  "In a parallel universe, that press caused [weirdEvent].",
-  "Press #[number]: [reaction]",
-  "The button is now [status].",
-  "Button status: [status] after [verb] [noun].",
-  "After [number] presses, the button feels [adjective].",
-  "That last press? It [verb] [noun]. Again.",
-  "You've angered the [noun]. Good job.",
-];
-
-const adjectives = [
-  "chaotically bold",
-  "deeply concerning",
-  "heroically dumb",
-  "mildly cursed",
-  "cosmically unwise",
-  "ferociously petty",
-  "alarmingly consistent",
-];
-
-const verbs = [
-  "summoned",
-  "cursed",
-  "annoyed",
-  "bewitched",
-  "confused",
-  "startled",
-  "befriended",
-  "alerted",
-  "woke up",
-];
-
-const nouns = [
-  "a sleep-deprived wizard",
-  "the ghost of bad decisions",
-  "a feral raccoon",
-  "a sentient waffle",
-  "your 3rd grade math teacher",
-  "a grumpy AI",
-  "an interdimensional goose",
-];
-
-const weirdEvents = [
-  "the moon to hiccup",
-  "the clouds to blush",
-  "a cow to tweet",
-  "your phone to judge you silently",
-  "all spoons to vibrate in sync",
-  "a toaster to feel jealousy",
-];
-
-const reactions = [
-  "It felt that one. Rude.",
-  "Still not broken. Disappointed.",
-  "You win nothing.",
-  "Try harder. Or don't.",
-  "What do you expect to happen?",
-  "That's not how any of this works.",
-  "Nice try, chaos gremlin.",
-];
-
-const statuses = [
-  "self-aware",
-  "melting",
-  "emotionally unavailable",
-  "on strike",
-  "plotting something",
-  "done with your nonsense",
-  "tired of being perceived",
-];
-
-// Removed unused shuffle function
+// --- Removed old message constants and lists (they are in buttonContent.ts now) ---
 
 function pickRandom<T>(array: T[]): T {
+  // Keep this utility function here or move to a general utils file
   return array[Math.floor(Math.random() * array.length)];
 }
 
-function fillTemplate(template: string, data: Record<string, string | number>) {
-  return template.replace(/\[(\w+)]/g, (_, key) => String(data[key] ?? ""));
-}
-
-function getButtonMessage(count: number): string {
+// Improved message generation logic
+// Revised message generation logic
+function getButtonMessage(count: number, previousMessages: string[]): string {
+  // 1. Check for specific milestones first (no change)
   if (milestoneMessages[count]) {
     return milestoneMessages[count];
   }
-  const template = pickRandom(templates);
-  return fillTemplate(template, {
-    number: count,
-    adjective: pickRandom(adjectives),
-    verb: pickRandom(verbs),
-    noun: pickRandom(nouns),
-    weirdEvent: pickRandom(weirdEvents),
-    reaction: pickRandom(reactions),
-    status: pickRandom(statuses),
-  });
+
+  // 2. Decide between Unique Message or Template (if unique are available)
+  const recentMessages = previousMessages.slice(-15); // Check against a slightly larger history
+  const availableUniqueMessages = uniqueMessages.filter(
+    (msg) => !recentMessages.includes(msg)
+  );
+
+  const useTemplateInsteadOfUnique = Math.random() >= 0.65; // ~35% chance to favour template
+
+  if (availableUniqueMessages.length > 0 && !useTemplateInsteadOfUnique) {
+    // ~65% chance to use an available unique message
+    return pickRandom(availableUniqueMessages);
+  }
+
+  // 3. If we didn't return a unique message (either by choice or availability), try a template
+  try {
+    // Attempt to generate a message using the template system
+    const templateMessage = getRandomTemplateMessage();
+    // Basic check to prevent repeating the very last message if it was also a template
+    if (templateMessage !== previousMessages[previousMessages.length - 1]) {
+      return templateMessage;
+    }
+    // If it's the same as the last, fall through to other options
+  } catch (e) {
+    console.error("Error generating template message:", e);
+    // If template generation fails, fall through to unique message fallback
+  }
+
+  // 4. Fallback: If template failed or was skipped/repeated, try any unique message
+  if (uniqueMessages.length > 0) {
+    // Prefer available ones if possible, otherwise pick any unique one
+    const fallbackPool =
+      availableUniqueMessages.length > 0
+        ? availableUniqueMessages
+        : uniqueMessages;
+    return pickRandom(fallbackPool);
+  }
+
+  // 5. Absolute Fallback: If all else fails (no unique messages defined)
+  return "You pressed the button. Congratulations, I guess.";
 }
 
 export default function DoNotPressButton() {
   const [pressCount, setPressCount] = useState(0);
-  const [message, setMessage] = useState("...");
+  const [message, setMessage] = useState("Do. Not. Press."); // Initial message
   const [isPressed, setIsPressed] = useState<"full" | "midway" | "down">(
     "full"
   );
   const [isShaking, setIsShaking] = useState(false);
   const [isJumping, setIsJumping] = useState(false);
-  
-  // Audio refs
+  const [isWobbling, setIsWobbling] = useState(false);
+  const [messageHistory, setMessageHistory] = useState<string[]>([]); // Track history for better unique message selection
+
   const clickSoundRef = useRef<HTMLAudioElement>(null);
   const popSoundRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
     const storedCount = localStorage.getItem("pressCount");
-    if (storedCount) setPressCount(Number(storedCount));
-    
+    if (storedCount) {
+      const count = Number(storedCount);
+      setPressCount(count);
+      // Set an initial message based on stored count if needed, or keep default
+      if (count > 0) {
+        const initialMsg = getButtonMessage(count, []); // Get a message for the loaded count
+        setMessage(initialMsg);
+        setMessageHistory([initialMsg]);
+      }
+    }
+
     // Initialize audio elements
     clickSoundRef.current = new Audio(CLICK_SOUND);
     popSoundRef.current = new Audio(POP_SOUND);
-    
-    // Set volume
-    if (clickSoundRef.current) clickSoundRef.current.volume = 0.5;
-    if (popSoundRef.current) popSoundRef.current.volume = 0.5;
-  }, []);
 
-  // Function to play a sound
-  const playSound = (audioRef: React.MutableRefObject<HTMLAudioElement | null>) => {
+    // Set volume
+    if (clickSoundRef.current) clickSoundRef.current.volume = 0.4; // Slightly lower volume
+    if (popSoundRef.current) popSoundRef.current.volume = 0.6; // Keep pop slightly louder
+  }, []); // Empty dependency array ensures this runs only once on mount
+
+  const playSound = (
+    audioRef: React.MutableRefObject<HTMLAudioElement | null>
+  ) => {
     if (audioRef.current) {
-      // Reset the audio to start
       audioRef.current.currentTime = 0;
-      
-      // Play the sound
-      audioRef.current.play().catch(err => {
-        console.error("Error playing sound:", err);
+      audioRef.current.play().catch((err) => {
+        // Avoid console noise in production for common browser interrupt errors
+        if (err.name !== "AbortError") {
+          console.error("Error playing sound:", err);
+        }
       });
     }
   };
-  
-  const handlePress = () => {
-    setTimeout(() => setIsPressed("midway"), 50);
-    setTimeout(() => setIsPressed("down"), 100);
-    setTimeout(() => setIsPressed("full"), 250);
 
+  const handlePress = () => {
+    // Prevent interaction if already animating shake/jump/wobble
+    if (isShaking || isJumping || isWobbling) return;
+
+    // Button press visual feedback
+    setIsPressed("midway"); // Start press immediately
+    setTimeout(() => setIsPressed("down"), 75); // Quicker down state
+    setTimeout(() => setIsPressed("full"), 200); // Quicker return
+
+    // Increment count and update state/storage
     const newCount = pressCount + 1;
     localStorage.setItem("pressCount", newCount.toString());
     setPressCount(newCount);
-    setMessage(getButtonMessage(newCount));
-    
-    // Play click sound on every button press
+
+    // Get and set message
+    const newMessage = getButtonMessage(newCount, messageHistory);
+    setMessage(newMessage);
+    // Update message history (keep it reasonably sized)
+    setMessageHistory((prev) => [...prev, newMessage].slice(-50)); // Keep last 50 messages
+
+    // Play click sound
     playSound(clickSoundRef);
 
-    // Chaos effects - random chance for different effects
+    // --- Chaos effects: Reduced Frequency ---
     const randomEffect = Math.random();
 
-    if (randomEffect < 0.4) {
-      // Shake effect (40% chance)
+    // Lower chance for effects
+    const SHAKE_CHANCE = 0.08; // 8% chance to shake
+    const JUMP_CHANCE = 0.04; // 4% chance to jump 
+    const WOBBLE_CHANCE = 0.04; // 4% chance to wobble (total 16% chance for any effect)
+
+    if (randomEffect < SHAKE_CHANCE) {
+      // Shake effect
       setIsShaking(true);
-      setTimeout(() => setIsShaking(false), 500);
-    } else if (randomEffect < 0.6) {
-      // Jump effect (20% chance)
+      setTimeout(() => setIsShaking(false), 500); // Duration of shake CSS animation
+    } else if (randomEffect < SHAKE_CHANCE + JUMP_CHANCE) {
+      // Jump effect
       setIsJumping(true);
-      setTimeout(() => setIsJumping(false), 1200);
-      
-      // Play pop sound when the button jumps
-      playSound(popSoundRef);
+      setTimeout(() => {
+        setIsJumping(false);
+        // Play pop sound *after* jump animation seems appropriate, e.g., near the end/impact
+      }, 1100); // Slightly before animation ends
+      setTimeout(() => playSound(popSoundRef), 900); // Play pop sound during the fall/impact part
+    } else if (randomEffect < SHAKE_CHANCE + JUMP_CHANCE + WOBBLE_CHANCE) {
+      // Wobble effect
+      setIsWobbling(true);
+      setTimeout(() => setIsWobbling(false), 1000); // Duration of wobble animation
+      playSound(clickSoundRef); // Play click sound during the wobble
     }
-    // No effect (40% chance)
+    // Most clicks (84%) will have no extra effect now
   };
 
+  // renderButtonImage remains the same, assuming images are correct
   const renderButtonImage = () => {
-    switch (isPressed) {
-      case "down":
-        return (
-          <Image
-            src={DoNotPushDown}
-            alt="Do Not Push Button - Down"
-            width={320}
-            height={320}
-            className="w-80 h-80"
-          />
-        );
-      case "midway":
-        return (
-          <Image
-            src={DoNotPushMidway}
-            alt="Do Not Push Button - Midway"
-            width={320}
-            height={320}
-            className="w-80 h-80"
-          />
-        );
-      default:
-        return (
-          <Image
-            src={DoNotPushFull}
-            alt="Do Not Push Button - Full"
-            width={320}
-            height={320}
-            className="w-80 h-80"
-          />
-        );
+    let src = DoNotPushFull;
+    let alt = "Do Not Push Button - Default";
+    if (isPressed === "down") {
+      src = DoNotPushDown;
+      alt = "Do Not Push Button - Pressed Down";
+    } else if (isPressed === "midway") {
+      src = DoNotPushMidway;
+      alt = "Do Not Push Button - Midway";
     }
+
+    return (
+      <Image
+        src={src}
+        alt={alt}
+        width={400} // Slightly smaller maybe? Adjust as needed
+        height={400}
+        className="w-72 h-72 md:w-80 md:h-80" // Responsive size example
+        priority // Prioritize loading the button image
+      />
+    );
   };
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center bg-red-50 text-center p-4">
+    // Added min-h-screen for better behavior on different screen sizes
+    <div className="min-h-screen flex flex-col items-center justify-center bg-red-50 text-center p-4 overflow-hidden">
+      {/* CSS Animations remain the same */}
       <style jsx>{`
         @keyframes shake {
           0% {
-            transform: translate(0, 0) rotate(0deg);
+            transform: translate(1px, 1px) rotate(0deg);
+          }
+          10% {
+            transform: translate(-1px, -2px) rotate(-1deg);
           }
           20% {
-            transform: translate(-5px, 0) rotate(-5deg);
+            transform: translate(-3px, 0px) rotate(1deg);
+          }
+          30% {
+            transform: translate(3px, 2px) rotate(0deg);
           }
           40% {
-            transform: translate(5px, 0) rotate(5deg);
+            transform: translate(1px, -1px) rotate(1deg);
+          }
+          50% {
+            transform: translate(-1px, 2px) rotate(-1deg);
           }
           60% {
-            transform: translate(-3px, 0) rotate(-3deg);
+            transform: translate(-3px, 1px) rotate(0deg);
+          }
+          70% {
+            transform: translate(3px, 1px) rotate(-1deg);
           }
           80% {
-            transform: translate(3px, 0) rotate(3deg);
+            transform: translate(-1px, -1px) rotate(1deg);
+          }
+          90% {
+            transform: translate(1px, 2px) rotate(0deg);
           }
           100% {
-            transform: translate(0, 0) rotate(0deg);
+            transform: translate(1px, -2px) rotate(-1deg);
           }
         }
 
         @keyframes jump {
-          /* Anticipation - slight squash before jump */
-          0% {
-            transform: translateY(0) scaleY(1) scaleX(1);
+          0%,
+          100% {
+            transform: translateY(0) scale(1, 1);
           }
           10% {
-            transform: translateY(5px) scaleY(0.9) scaleX(1.1);
-          }
-
-          /* Take off - stretch vertically */
-          20% {
-            transform: translateY(-20px) scaleY(1.1) scaleX(0.9);
-          }
-
-          /* Upward movement */
+            transform: translateY(5px) scale(1.1, 0.9);
+          } /* Anticipation squash */
           30% {
-            transform: translateY(-60px) scaleY(1) scaleX(1);
-          }
-          40% {
-            transform: translateY(-100px) scaleY(1) scaleX(1);
-          }
-
-          /* At the peak - slight stretch horizontally */
+            transform: translateY(-90px) scale(0.9, 1.1);
+          } /* Take off stretch */
           50% {
-            transform: translateY(-120px) scaleY(0.95) scaleX(1.05);
-          }
-
-          /* Falling - stretch vertically */
-          65% {
-            transform: translateY(-50px) scaleY(1.05) scaleX(0.95);
-          }
-
-          /* Impact - squash */
-          80% {
-            transform: translateY(0) scaleY(0.85) scaleX(1.15);
-          }
-
-          /* Rebound - slight bounce */
-          87% {
-            transform: translateY(-6px) scaleY(1.015) scaleX(0.985);
-          }
-          92% {
-            transform: translateY(0) scaleY(0.99) scaleX(1.01);
-          }
-          97% {
-            transform: translateY(-0.4px) scaleY(1.0025) scaleX(0.9975);
-          }
-
-          /* Rest */
-          100% {
-            transform: translateY(0) scaleY(1) scaleX(1);
-          }
+            transform: translateY(-120px) scale(1, 1);
+          } /* Apex */
+          70% {
+            transform: translateY(-90px) scale(0.95, 1.05);
+          } /* Falling stretch */
+          90% {
+            transform: translateY(0) scale(1.2, 0.8);
+          } /* Landing squash */
+          95% {
+            transform: translateY(-4px) scale(0.98, 1.02);
+          } /* Bounce */
         }
 
         .shake {
-          animation: shake 0.5s ease-in-out;
+          animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+
+        @keyframes wobble {
+          0%, 100% {
+            transform: translateX(0%) rotate(0deg);
+            transform-origin: 50% 50%;
+          }
+          15% {
+            transform: translateX(-25px) rotate(-8deg);
+          }
+          30% {
+            transform: translateX(20px) rotate(6deg);
+          }
+          45% {
+            transform: translateX(-15px) rotate(-4deg);
+          }
+          60% {
+            transform: translateX(10px) rotate(2deg);
+          }
+          75% {
+            transform: translateX(-5px) rotate(-1deg);
+          }
         }
 
         .jump {
           animation: jump 1.2s ease-in-out;
           transform-origin: center bottom;
         }
+
+        .wobble {
+          animation: wobble 1s ease-in-out;
+          transform-origin: center center;
+        }
       `}</style>
 
-      <div className="flex flex-col items-center h-[500px]">
-        <div
-          className={`relative ${isShaking ? "shake" : ""} ${
-            isJumping ? "jump" : ""
-          }`}
-        >
-          <div onClick={handlePress} className="cursor-pointer">
-            {renderButtonImage()}
+      {/* Container for Button + Message Area */}
+      {/* Adjusted height/spacing for better layout */}
+      <div
+        className="flex flex-col items-center justify-start pt-10"
+        style={{ height: "calc(100vh - 100px)" }}
+      >
+        {/* Button container with space for jump */}
+        <div className="relative h-[400px] flex items-end justify-center">
+          <div
+            className={`transform transition-transform duration-100 ease-out ${
+              isShaking ? "shake" : ""
+            } ${isJumping ? "jump" : ""} ${isWobbling ? "wobble" : ""}`}
+            style={{ willChange: "transform" }} // Performance hint for animations
+          >
+            {/* Make the clickable area slightly larger/easier to hit */}
+            <div
+              onClick={handlePress}
+              className="cursor-pointer p-2 rounded-full" // Add padding around image for easier clicks
+              role="button"
+              aria-pressed={isPressed !== "full"}
+              aria-label="Do Not Press Button"
+              tabIndex={0} // Make it focusable
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") handlePress();
+              }} // Allow keyboard interaction
+            >
+              {renderButtonImage()}
+            </div>
           </div>
         </div>
 
-        <div className="h-20 flex items-center justify-center">
-          <p className="text-xl max-w-xs text-red-800 font-bold">{message}</p>
+        {/* Message Area */}
+        <div className="h-24 flex items-center justify-center mt-4 px-4">
+          <p className="text-xl md:text-2xl max-w-md text-red-800 font-semibold leading-tight">
+            {" "}
+            {/* Slightly larger text, adjusted line height */}
+            {message}
+          </p>
+        </div>
+
+        {/* Counter (Optional but nice) */}
+        <div className="absolute bottom-4 right-4 text-sm text-red-400">
+          Presses: {pressCount}
         </div>
       </div>
     </div>
