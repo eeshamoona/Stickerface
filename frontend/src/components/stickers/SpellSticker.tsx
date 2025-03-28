@@ -4,7 +4,7 @@
  * A minimal, mobile-friendly React + TypeScript web app for stress-relief spells.
  * Key Features:
  *   1) Ingredient selection
- *   2) A whimsical incantation puzzle (words in random order)
+ *   2) A whimsical incantation puzzle (words in random order to make a rhyme)
  *   3) Mixing swirl animation
  *   4) A final "business card" that's flippable: front = incantation & affirmation; back = stats
  *   5) A button to download the card details as a .txt file

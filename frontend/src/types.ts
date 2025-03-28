@@ -8,13 +8,10 @@ export interface Sticker {
   type:
     | "fortune"
     | "pet"
-    | "weather"
-    | "music"
-    | "game"
-    | "art"
     | "spell"
     | "perfect-day"
-    | "button";
+    | "button"
+    | "purrfect-timing";
   imageSrc: string;
   animation?: "bounce" | "pulse" | "wiggle" | "spin" | "float";
 }

@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getCharacterConfig, getSticker } from "../../../lib/data";
 
@@ -10,11 +10,11 @@ import { getCharacterConfig, getSticker } from "../../../lib/data";
 import DoNotPressButton from "../../../components/stickers/DoNotPressButton";
 import FortuneSticker from "../../../components/stickers/FortuneSticker";
 import PerfectDayToRememberSticker from "../../../components/stickers/PerfectDayToRememberSticker";
-import PetSticker from "../../../components/stickers/PetSticker";
 import SpellSticker from "../../../components/stickers/SpellSticker";
+import PurrfectTiming from "../../../components/stickers/purrfectTiming";
 
 export default function StickerPage() {
-  const router = useRouter();
+  // const router = useRouter(); // Removed unused variable
   const searchParams = useSearchParams();
   const slug = searchParams.get("friend");
   const character = getCharacterConfig(slug ?? "capybara");
@@ -43,14 +43,10 @@ export default function StickerPage() {
     switch (sticker.type) {
       case "fortune":
         return <FortuneSticker />;
-      case "pet":
-        return <PetSticker />;
       case "spell":
         return <SpellSticker />;
-      case "weather":
-      case "music":
-      case "game":
-      case "art":
+      case "purrfect-timing":
+        return <PurrfectTiming />;
       case "perfect-day":
         return <PerfectDayToRememberSticker character={character} />;
       case "button":
@@ -63,30 +59,8 @@ export default function StickerPage() {
   return (
     <div
       className="sticker-page flex flex-col items-center h-screen p-4"
-      style={{ backgroundColor: `${sticker.color}30` }} // Light version of sticker color
+      style={{ backgroundColor: `${sticker.color}80` }}
     >
-      <div className="flex items-center w-full mb-4">
-        <button
-          onClick={() => router.push("/")}
-          className="text-slate-700 flex items-center"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-          <span className="ml-2">Back</span>
-        </button>
-      </div>
-
       <div className="sticker-content-container w-full max-w-md flex-grow flex flex-col justify-center p-4 bg-white rounded-2xl shadow-lg">
         {renderStickerContent()}
       </div>
