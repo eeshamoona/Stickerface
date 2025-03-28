@@ -1,75 +1,87 @@
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
-// Import content from the new file
-import {
-  getRandomTemplateMessage,
-  milestoneMessages,
-  uniqueMessages,
-} from "@/lib/do-not-push-button";
+import { useCallback, useEffect, useRef, useState } from "react"; // Added useCallback
+// Import EVERYTHING from the content file now
+import * as ButtonContent from "@/lib/do-not-push-button";
+// Import animations
+import { animations, buttonKeyframes } from "@/lib/animations";
 
-// Define image paths (keep these here or move to constants file)
+// Define image paths (as before)
 const DoNotPushDown = "/images/DoNotPush-Down.svg";
 const DoNotPushFull = "/images/DoNotPush-Full.svg";
 const DoNotPushMidway = "/images/DoNotPush-Midway.svg";
 
-// Define sound paths
+// Define sound paths (as before)
 const CLICK_SOUND = "/sounds/mouse-click.mp3";
-const POP_SOUND = "/sounds/bubble-pop.mp3"; // Keep pop for jump
+const POP_SOUND = "/sounds/bubble-pop.mp3";
 
-// --- Removed old message constants and lists (they are in buttonContent.ts now) ---
+// --- Configuration ---
+const MESSAGE_HISTORY_LENGTH = 50; // How many past messages to check against for unique static messages
+const RECENT_PROCEDURAL_HISTORY_LENGTH = 5; // How many past messages to check against for procedural repeats
+const MAX_MESSAGES_TO_KEEP = 100; // Limit overall history size in state
 
-function pickRandom<T>(array: T[]): T {
-  // Keep this utility function here or move to a general utils file
-  return array[Math.floor(Math.random() * array.length)];
-}
-
-// Improved message generation logic
-// Revised message generation logic
-function getButtonMessage(count: number, previousMessages: string[]): string {
-  // 1. Check for specific milestones first (no change)
-  if (milestoneMessages[count]) {
-    return milestoneMessages[count];
+// --- Message Generation Logic ---
+// This function now orchestrates calls to ButtonContent
+function getButtonMessage(count: number, fullMessageHistory: string[]): string {
+  // 1. Check for specific milestones first
+  if (ButtonContent.milestoneMessages[count]) {
+    return ButtonContent.milestoneMessages[count];
   }
 
-  // 2. Decide between Unique Message or Template (if unique are available)
-  const recentMessages = previousMessages.slice(-15); // Check against a slightly larger history
-  const availableUniqueMessages = uniqueMessages.filter(
-    (msg) => !recentMessages.includes(msg)
+  // 2. Try to find a truly unique static message (checking recent history)
+  const recentStaticCheckHistory = fullMessageHistory.slice(
+    -MESSAGE_HISTORY_LENGTH
+  );
+  const availableUniqueMessages = ButtonContent.uniqueMessages.filter(
+    (msg) => !recentStaticCheckHistory.includes(msg)
   );
 
-  const useTemplateInsteadOfUnique = Math.random() >= 0.65; // ~35% chance to favour template
+  // Give static unique messages a higher chance if available
+  const preferStaticUnique = Math.random() < 0.7; // 70% chance to use static if available
 
-  if (availableUniqueMessages.length > 0 && !useTemplateInsteadOfUnique) {
-    // ~65% chance to use an available unique message
-    return pickRandom(availableUniqueMessages);
+  if (availableUniqueMessages.length > 0 && preferStaticUnique) {
+    // Pick a random one from the available *static* unique messages
+    const randomIndex = Math.floor(
+      Math.random() * availableUniqueMessages.length
+    );
+    return availableUniqueMessages[randomIndex];
   }
 
-  // 3. If we didn't return a unique message (either by choice or availability), try a template
-  try {
-    // Attempt to generate a message using the template system
-    const templateMessage = getRandomTemplateMessage();
-    // Basic check to prevent repeating the very last message if it was also a template
-    if (templateMessage !== previousMessages[previousMessages.length - 1]) {
-      return templateMessage;
+  // 3. Generate a procedural message
+  let proceduralMessage: string;
+  let attempts = 0;
+  const maxAttempts = 10; // Prevent infinite loops if generation is stuck
+  const recentProceduralCheckHistory = fullMessageHistory.slice(
+    -RECENT_PROCEDURAL_HISTORY_LENGTH
+  );
+
+  // Try generating a procedural message that hasn't been seen very recently
+  do {
+    proceduralMessage = ButtonContent.generateProceduralMessage(count);
+    attempts++;
+  } while (
+    recentProceduralCheckHistory.includes(proceduralMessage) &&
+    attempts < maxAttempts
+  );
+
+  // If we couldn't find a novel procedural message after attempts, just use the last one generated
+  // Or, optionally, fall back to a static unique message again if any exist at all
+  if (attempts === maxAttempts && ButtonContent.uniqueMessages.length > 0) {
+    const fallbackUnique = ButtonContent.uniqueMessages.filter(
+      (msg) => !fullMessageHistory.slice(-1).includes(msg) // Avoid immediate repeat
+    );
+    if (fallbackUnique.length > 0) {
+      const randomIndex = Math.floor(Math.random() * fallbackUnique.length);
+      return fallbackUnique[randomIndex];
     }
-    // If it's the same as the last, fall through to other options
-  } catch (e) {
-    console.error("Error generating template message:", e);
-    // If template generation fails, fall through to unique message fallback
+    // If even THAT fails, return the last procedural one.
   }
 
-  // 4. Fallback: If template failed or was skipped/repeated, try any unique message
-  if (uniqueMessages.length > 0) {
-    // Prefer available ones if possible, otherwise pick any unique one
-    const fallbackPool =
-      availableUniqueMessages.length > 0
-        ? availableUniqueMessages
-        : uniqueMessages;
-    return pickRandom(fallbackPool);
-  }
+  return proceduralMessage;
 
-  // 5. Absolute Fallback: If all else fails (no unique messages defined)
-  return "You pressed the button. Congratulations, I guess.";
+  // 4. Absolute Fallback (should be rarely needed with good procedural generation)
+  // Removed the old simple fallback, relying on the robust procedural generation.
+  // If generateProceduralMessage could potentially fail/return empty, add a final static fallback here:
+  // return "Button pressed.";
 }
 
 export default function DoNotPressButton() {
@@ -85,94 +97,103 @@ export default function DoNotPressButton() {
 
   const clickSoundRef = useRef<HTMLAudioElement>(null);
   const popSoundRef = useRef<HTMLAudioElement>(null);
+  const [showPressCount, setShowPressCount] = useState(false);
 
+  // --- Effects Initialization (useEffect) ---
   useEffect(() => {
+    // Load count from local storage
     const storedCount = localStorage.getItem("pressCount");
+    let initialCount = 0;
     if (storedCount) {
-      const count = Number(storedCount);
-      setPressCount(count);
-      // Set an initial message based on stored count if needed, or keep default
-      if (count > 0) {
-        const initialMsg = getButtonMessage(count, []); // Get a message for the loaded count
-        setMessage(initialMsg);
-        setMessageHistory([initialMsg]);
-      }
+      initialCount = Number(storedCount);
+      setPressCount(initialCount);
+    }
+
+    // Set initial message (avoiding call if count is 0)
+    if (initialCount > 0) {
+      // Pass an empty history initially, or fetch stored history if you implement that
+      const initialMsg = getButtonMessage(initialCount, []);
+      setMessage(initialMsg);
+      setMessageHistory([initialMsg]); // Start history
+    } else {
+      setMessage("Do. Not. Press."); // Ensure default message for count 0
+      setMessageHistory(["Do. Not. Press."]); // Initialize history
     }
 
     // Initialize audio elements
     clickSoundRef.current = new Audio(CLICK_SOUND);
     popSoundRef.current = new Audio(POP_SOUND);
+    if (clickSoundRef.current) clickSoundRef.current.volume = 0.4;
+    if (popSoundRef.current) popSoundRef.current.volume = 0.6;
+  }, []); // Runs only on mount
 
-    // Set volume
-    if (clickSoundRef.current) clickSoundRef.current.volume = 0.4; // Slightly lower volume
-    if (popSoundRef.current) popSoundRef.current.volume = 0.6; // Keep pop slightly louder
-  }, []); // Empty dependency array ensures this runs only once on mount
+  // --- Sound Playback ---
+  const playSound = useCallback(
+    (audioRef: React.MutableRefObject<HTMLAudioElement | null>) => {
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch((err) => {
+          if (err.name !== "AbortError") {
+            console.error("Error playing sound:", err);
+          }
+        });
+      }
+    },
+    []
+  );
 
-  const playSound = (
-    audioRef: React.MutableRefObject<HTMLAudioElement | null>
-  ) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch((err) => {
-        // Avoid console noise in production for common browser interrupt errors
-        if (err.name !== "AbortError") {
-          console.error("Error playing sound:", err);
-        }
-      });
-    }
-  };
-
-  const handlePress = () => {
-    // Prevent interaction if already animating shake/jump/wobble
+  // --- Button Press Handler ---
+  const handlePress = useCallback(() => {
     if (isShaking || isJumping || isWobbling) return;
 
-    // Button press visual feedback
-    setIsPressed("midway"); // Start press immediately
-    setTimeout(() => setIsPressed("down"), 75); // Quicker down state
-    setTimeout(() => setIsPressed("full"), 200); // Quicker return
+    // Visual feedback
+    setIsPressed("midway");
+    setTimeout(() => setIsPressed("down"), 75);
+    setTimeout(() => setIsPressed("full"), 200);
 
-    // Increment count and update state/storage
+    // Update count
     const newCount = pressCount + 1;
     localStorage.setItem("pressCount", newCount.toString());
     setPressCount(newCount);
 
-    // Get and set message
+    // Get and set message, update history
     const newMessage = getButtonMessage(newCount, messageHistory);
     setMessage(newMessage);
-    // Update message history (keep it reasonably sized)
-    setMessageHistory((prev) => [...prev, newMessage].slice(-50)); // Keep last 50 messages
+    setMessageHistory((prev) =>
+      [...prev, newMessage].slice(-MAX_MESSAGES_TO_KEEP)
+    );
 
-    // Play click sound
+    // Play sound
     playSound(clickSoundRef);
 
-    // --- Chaos effects: Reduced Frequency ---
+    // Chaos effects (Reduced Frequency - logic remains similar)
     const randomEffect = Math.random();
-
-    // Lower chance for effects
-    const SHAKE_CHANCE = 0.08; // 8% chance to shake
-    const JUMP_CHANCE = 0.04; // 4% chance to jump 
-    const WOBBLE_CHANCE = 0.04; // 4% chance to wobble (total 16% chance for any effect)
+    const SHAKE_CHANCE = 0.08;
+    const JUMP_CHANCE = 0.04;
+    const WOBBLE_CHANCE = 0.04;
 
     if (randomEffect < SHAKE_CHANCE) {
-      // Shake effect
       setIsShaking(true);
-      setTimeout(() => setIsShaking(false), 500); // Duration of shake CSS animation
+      setTimeout(() => setIsShaking(false), 500);
     } else if (randomEffect < SHAKE_CHANCE + JUMP_CHANCE) {
-      // Jump effect
       setIsJumping(true);
-      setTimeout(() => {
-        setIsJumping(false);
-        // Play pop sound *after* jump animation seems appropriate, e.g., near the end/impact
-      }, 1100); // Slightly before animation ends
-      setTimeout(() => playSound(popSoundRef), 900); // Play pop sound during the fall/impact part
+      setTimeout(() => setIsJumping(false), 1100);
+      setTimeout(() => playSound(popSoundRef), 900);
     } else if (randomEffect < SHAKE_CHANCE + JUMP_CHANCE + WOBBLE_CHANCE) {
-      // Wobble effect
       setIsWobbling(true);
-      setTimeout(() => setIsWobbling(false), 1000); // Duration of wobble animation
-      playSound(clickSoundRef); // Play click sound during the wobble
+      setTimeout(() => setIsWobbling(false), 1000);
+      // Maybe play a different sound for wobble or none? Adjust as needed.
+      // playSound(clickSoundRef); // Playing click again might be too much here
     }
-    // Most clicks (84%) will have no extra effect now
-  };
+  }, [
+    pressCount,
+    messageHistory,
+    isShaking,
+    isJumping,
+    isWobbling,
+    playSound,
+    popSoundRef,
+  ]); // Include all dependencies
 
   // renderButtonImage remains the same, assuming images are correct
   const renderButtonImage = () => {
@@ -199,116 +220,32 @@ export default function DoNotPressButton() {
   };
 
   return (
-    // Added min-h-screen for better behavior on different screen sizes
-    <div className="min-h-screen flex flex-col items-center justify-center bg-red-50 text-center p-4 overflow-hidden">
+    // Use h-full instead of h-screen to adapt to parent container
+    <div className="h-full w-full flex flex-col items-center justify-center bg-red-50 text-center overflow-hidden">
       {/* CSS Animations remain the same */}
       <style jsx>{`
-        @keyframes shake {
-          0% {
-            transform: translate(1px, 1px) rotate(0deg);
-          }
-          10% {
-            transform: translate(-1px, -2px) rotate(-1deg);
-          }
-          20% {
-            transform: translate(-3px, 0px) rotate(1deg);
-          }
-          30% {
-            transform: translate(3px, 2px) rotate(0deg);
-          }
-          40% {
-            transform: translate(1px, -1px) rotate(1deg);
-          }
-          50% {
-            transform: translate(-1px, 2px) rotate(-1deg);
-          }
-          60% {
-            transform: translate(-3px, 1px) rotate(0deg);
-          }
-          70% {
-            transform: translate(3px, 1px) rotate(-1deg);
-          }
-          80% {
-            transform: translate(-1px, -1px) rotate(1deg);
-          }
-          90% {
-            transform: translate(1px, 2px) rotate(0deg);
-          }
-          100% {
-            transform: translate(1px, -2px) rotate(-1deg);
-          }
-        }
-
-        @keyframes jump {
-          0%,
-          100% {
-            transform: translateY(0) scale(1, 1);
-          }
-          10% {
-            transform: translateY(5px) scale(1.1, 0.9);
-          } /* Anticipation squash */
-          30% {
-            transform: translateY(-90px) scale(0.9, 1.1);
-          } /* Take off stretch */
-          50% {
-            transform: translateY(-120px) scale(1, 1);
-          } /* Apex */
-          70% {
-            transform: translateY(-90px) scale(0.95, 1.05);
-          } /* Falling stretch */
-          90% {
-            transform: translateY(0) scale(1.2, 0.8);
-          } /* Landing squash */
-          95% {
-            transform: translateY(-4px) scale(0.98, 1.02);
-          } /* Bounce */
-        }
+        ${buttonKeyframes}
 
         .shake {
-          animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-        }
-
-        @keyframes wobble {
-          0%, 100% {
-            transform: translateX(0%) rotate(0deg);
-            transform-origin: 50% 50%;
-          }
-          15% {
-            transform: translateX(-25px) rotate(-8deg);
-          }
-          30% {
-            transform: translateX(20px) rotate(6deg);
-          }
-          45% {
-            transform: translateX(-15px) rotate(-4deg);
-          }
-          60% {
-            transform: translateX(10px) rotate(2deg);
-          }
-          75% {
-            transform: translateX(-5px) rotate(-1deg);
-          }
+          animation: ${animations.shake.animation};
         }
 
         .jump {
-          animation: jump 1.2s ease-in-out;
-          transform-origin: center bottom;
+          animation: ${animations.jump.animation};
+          transform-origin: ${animations.jump.transformOrigin};
         }
 
         .wobble {
-          animation: wobble 1s ease-in-out;
-          transform-origin: center center;
+          animation: ${animations.wobble.animation};
+          transform-origin: ${animations.wobble.transformOrigin};
         }
       `}</style>
 
-      {/* Container for Button + Message Area */}
-      {/* Adjusted height/spacing for better layout */}
-      <div
-        className="flex flex-col items-center justify-start pt-10"
-        style={{ height: "calc(100vh - 100px)" }}
-      >
-        {/* Button container with space for jump */}
-        <div className="relative h-[400px] flex items-end justify-center">
+      {/* Container for Button + Message Area - using flex layout */}
+      <div className="flex flex-col items-center justify-center w-full h-full">
+
+        {/* Button container with space for jump - using relative positioning */}
+        <div className="relative flex items-end justify-center" style={{ height: "min(300px, 40vh)" }}>
           <div
             className={`transform transition-transform duration-100 ease-out ${
               isShaking ? "shake" : ""
@@ -341,10 +278,25 @@ export default function DoNotPressButton() {
           </p>
         </div>
 
-        {/* Counter (Optional but nice) */}
-        <div className="absolute bottom-4 right-4 text-sm text-red-400">
-          Presses: {pressCount}
-        </div>
+        {/* Hidden counter that shows on secret click */}
+        {showPressCount ? (
+          <div
+            className="absolute bottom-4 right-4 text-sm text-red-400 transition-opacity duration-500"
+            style={{ opacity: showPressCount ? 1 : 0 }}
+          >
+            Presses: {pressCount}
+          </div>
+        ) : (
+          <button
+            onClick={() => {
+              setShowPressCount(true);
+              setTimeout(() => setShowPressCount(false), 3000);
+            }}
+            className="absolute bottom-4 right-4 w-8 h-8 cursor-default focus:outline-none"
+            style={{ background: "transparent" }}
+            aria-label="Show press count"
+          />
+        )}
       </div>
     </div>
   );

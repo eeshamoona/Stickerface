@@ -62,10 +62,10 @@ export default function StickerPage() {
 
   return (
     <div
-      className="sticker-page flex flex-col items-center min-h-screen p-4"
+      className="sticker-page flex flex-col items-center h-screen p-4"
       style={{ backgroundColor: `${sticker.color}30` }} // Light version of sticker color
     >
-      <div className="mb-4 flex items-center w-full">
+      <div className="flex items-center w-full mb-4">
         <button
           onClick={() => router.push("/")}
           className="text-slate-700 flex items-center"
@@ -87,7 +87,7 @@ export default function StickerPage() {
         </button>
       </div>
 
-      <div className="sticker-content-container w-full max-w-md p-4 bg-white rounded-2xl shadow-lg mb-6">
+      <div className="sticker-content-container w-full max-w-md flex-grow flex flex-col justify-center p-4 bg-white rounded-2xl shadow-lg">
         {renderStickerContent()}
       </div>
     </div>
