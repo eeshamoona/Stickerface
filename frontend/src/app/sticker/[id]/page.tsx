@@ -10,7 +10,6 @@ import { getCharacterConfig, getSticker } from "../../../lib/data";
 import DoNotPressButton from "../../../components/stickers/DoNotPressButton";
 import FortuneSticker from "../../../components/stickers/FortuneSticker";
 import PerfectDayToRememberSticker from "../../../components/stickers/PerfectDayToRememberSticker";
-import PetSticker from "../../../components/stickers/PetSticker";
 import SpellSticker from "../../../components/stickers/SpellSticker";
 import PurrfectTiming from "../../../components/stickers/purrfectTiming";
 
@@ -44,8 +43,6 @@ export default function StickerPage() {
     switch (sticker.type) {
       case "fortune":
         return <FortuneSticker />;
-      case "pet":
-        return <PetSticker />;
       case "spell":
         return <SpellSticker />;
       case "purrfect-timing":
@@ -62,7 +59,7 @@ export default function StickerPage() {
   return (
     <div
       className="sticker-page flex flex-col items-center h-screen p-4"
-      style={{ backgroundColor: `${sticker.color}80` }} // Assuming a hex code with added alpha for transparency
+      style={{ backgroundColor: `${sticker.color}80` }}
     >
       <div className="sticker-content-container w-full max-w-md flex-grow flex flex-col justify-center p-4 bg-white rounded-2xl shadow-lg">
         {renderStickerContent()}
