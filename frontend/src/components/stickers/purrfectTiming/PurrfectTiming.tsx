@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { BiAward, BiCrown, BiLineChart, BiTrophy } from "react-icons/bi";
+import {
+  BiAlarm,
+  BiAward,
+  BiCrown,
+  BiLineChart,
+  BiTrophy,
+} from "react-icons/bi";
 import { CatDisplay, StickerSceneBackground } from "./components";
 import styles from "./styles.module.css";
 import {
@@ -272,27 +278,40 @@ const PurrfectTiming: React.FC = () => {
           {gameState === "idle" ? feedbackDisplay : ""}
         </p>
         {/* Main Game Feedback Layer */}
-        {timeDisplay && <p className={styles.resultTime}>{timeDisplay}</p>}
-        
+        {timeDisplay && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <BiAlarm className={styles.resultTimeIcon} />
+            <span className={styles.resultTime}>{timeDisplay}</span>
+          </div>
+        )}
         {/* Non-petting feedback */}
         {gameState !== "idle" && !isPetting && (
           <p
             className={`${styles.feedbackTextBase} ${
-              gameState === "result" ? styles.successFeedback : 
-              gameState === "failed" ? styles.failureFeedback : ""
+              gameState === "result"
+                ? styles.successFeedback
+                : gameState === "failed"
+                ? styles.failureFeedback
+                : ""
             }`}
           >
             {feedbackDisplay}
           </p>
         )}
-        
+
         {/* Petting animation - separate from p tag */}
         {gameState === "petting" && (
-          <div 
+          <div
             className={styles.pettingTextContainer}
             style={{
               opacity: 1,
-              animation: "textPulse 2s ease-in-out infinite"
+              animation: "textPulse 2s ease-in-out infinite",
             }}
           >
             {Array.from("Petting...zzZZZzz").map((char, index) => (
