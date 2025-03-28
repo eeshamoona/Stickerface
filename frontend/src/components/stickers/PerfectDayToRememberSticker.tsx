@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
-import { CharacterConfig } from "../../lib/data";
+import { CharacterConfig } from "../../lib/data"; // Assuming this path is correct
 
-// Props: characterSlug (string), characterData (object containing name, bgColor, avatarSVG, activityList [{ id, label, svg }])
 export default function PerfectDayToRememberSticker({
   character,
 }: {
@@ -20,353 +19,319 @@ export default function PerfectDayToRememberSticker({
   >("waiting");
   const [countdownProgress, setCountdownProgress] = useState(100);
   const [highScore, setHighScore] = useState(0);
+  // --- NEW STATE ---
+  // Store the index where the user made a mistake
+  const [failureIndex, setFailureIndex] = useState<number | null>(null);
 
-  // Pull high score from localStorage
+  // --- Constants ---
+  const SHOW_SEQUENCE_TIME = 3000;
+  const COUNTDOWN_INTERVAL = 50;
+  const SUCCESS_DELAY = 1800;
+
+  // --- Effects ---
+
+  // Load high score
   useEffect(() => {
     const saved = localStorage.getItem(`highScore-${character.slug}`);
-    if (saved) setHighScore(parseInt(saved));
+    if (saved) {
+      const score = parseInt(saved, 10);
+      if (!isNaN(score)) {
+        setHighScore(score);
+      }
+    }
   }, [character.slug]);
 
-  // Start new round
-  useEffect(() => {
+  // Generate new sequence
+  const generateNewSequence = useCallback(() => {
     const newSequence = Array.from({ length: round }, () => {
-      return character.activities[
-        Math.floor(Math.random() * character.activities.length)
-      ].id;
+      const randomIndex = Math.floor(Math.random() * character.activities.length);
+      return character.activities[randomIndex].id;
     });
     setSequence(newSequence);
     setUserInput([]);
     setFeedback(null);
+    setFailureIndex(null); // Reset failure index
     setGameState("waiting");
   }, [round, character.activities]);
 
-  // Function to show the sequence to the user
+  useEffect(() => {
+    generateNewSequence();
+  }, [round, generateNewSequence]);
+
+  // --- Game Logic ---
+
   const showSequence = () => {
-    if (gameState !== "waiting") return;
-    setGameState("showing");
-    setCountdownProgress(100);
-
-    // Start countdown animation
-    const totalTime = 3000; // 3 seconds
-    const interval = 50; // Update every 50ms
-    const steps = totalTime / interval;
-    const decrementPerStep = 100 / steps;
-
-    const countdownInterval = setInterval(() => {
-      setCountdownProgress((prev) => {
-        const newValue = prev - decrementPerStep;
-        return newValue > 0 ? newValue : 0;
-      });
-    }, interval);
-
-    // After showing the sequence for a few seconds, switch to user turn
-    setTimeout(() => {
-      clearInterval(countdownInterval);
-      setGameState("userTurn");
-    }, totalTime);
+     if (gameState !== "waiting") return;
+     setFailureIndex(null); // Ensure failure index is cleared before showing
+     setGameState("showing");
+     setCountdownProgress(100);
+     const steps = SHOW_SEQUENCE_TIME / COUNTDOWN_INTERVAL;
+     const decrementPerStep = 100 / steps;
+     const countdownInterval = setInterval(() => {
+       setCountdownProgress((prev) => Math.max(0, prev - decrementPerStep));
+     }, COUNTDOWN_INTERVAL);
+     setTimeout(() => {
+       clearInterval(countdownInterval);
+       setGameState("userTurn");
+     }, SHOW_SEQUENCE_TIME);
   };
 
   const handleUserTap = (id: string) => {
-    // Don't allow input while showing sequence
     if (gameState !== "userTurn") return;
+
+    const currentInputIndex = userInput.length;
     const nextInput = [...userInput, id];
     setUserInput(nextInput);
 
-    // Check as they go
-    for (let i = 0; i < nextInput.length; i++) {
-      if (nextInput[i] !== sequence[i]) {
-        // Fail
-        const failMessages = [
-          "Oops, not quite! But that still sounds fun!",
-          "Haha, close enough for a pretty good day!",
-          "Hey, I'd still hang out with you if we did that!",
-        ];
-        setFeedback({
-          message:
-            failMessages[Math.floor(Math.random() * failMessages.length)],
-          success: false,
-        });
-        // Don't reset the round immediately, let user decide when to try again
-        setGameState("failed");
-        return;
-      }
+    // --- Check for incorrect tap ---
+    if (id !== sequence[currentInputIndex]) {
+      const failMessages = [
+        "Oops! That wasn't the next step.",
+        "Not quite! Let's see where things differed.",
+        "Almost, but something else came next!",
+      ];
+      setFeedback({
+        message: failMessages[Math.floor(Math.random() * failMessages.length)],
+        success: false,
+      });
+      setFailureIndex(currentInputIndex); // Record the index of the mistake
+      setGameState("failed");
+      return;
     }
 
-    // If complete and correct
+    // --- Correct tap, check if sequence complete ---
     if (nextInput.length === sequence.length) {
       const successMessages = [
-        "You got it! That really was a perfect day!",
-        "Whoa! You remembered everything!",
-        "Yes! That's exactly how I imagined it!",
+        "You got it! That's my perfect day!",
+        "Incredible memory! You nailed it!",
+        "Yes! Exactly right!",
       ];
       const newScore = Math.max(highScore, sequence.length);
       setHighScore(newScore);
-      localStorage.setItem(`highScore-${character.slug}`, newScore.toString());
+      try {
+        localStorage.setItem(`highScore-${character.slug}`, newScore.toString());
+      } catch (error) {
+        console.error("Failed to save high score:", error);
+      }
       setFeedback({
-        message:
-          successMessages[Math.floor(Math.random() * successMessages.length)],
+        message: successMessages[Math.floor(Math.random() * successMessages.length)],
         success: true,
       });
       setGameState("success");
-      // Automatically start next round after a short delay when successful
       setTimeout(() => {
         setRound((r) => r + 1);
-        setGameState("waiting");
-      }, 2000);
+      }, SUCCESS_DELAY);
     }
+    // If correct but not complete, continue...
   };
 
-  // Helper function to get activity by ID
+  const resetGame = () => {
+    setRound(1);
+    // generateNewSequence is called via useEffect hook when round changes
+    // failureIndex is reset within generateNewSequence
+  };
+
   const getActivityById = (id: string) => {
     return character.activities.find((activity) => activity.id === id);
   };
 
+  // --- Render Logic ---
+
+  // Helper function to render sequence items with specific styling
+  const renderSequenceItem = (
+        id: string | null,
+        index: number,
+        type: 'correct' | 'user-correct' | 'user-incorrect' | 'placeholder' | 'missed'
+    ) => {
+    const activity = id ? getActivityById(id) : null;
+    let bgColor = 'bg-gray-100';
+    let ringColor = 'ring-gray-200';
+    let iconSize = 'w-9 h-9'; // Default size
+    let opacity = 'opacity-100';
+    let content: React.ReactNode = <div className={`${iconSize} flex items-center justify-center text-gray-400 font-mono text-lg`}>?</div>;
+
+    if (activity) {
+        content = (
+            <Image
+                src={activity.svg || ""}
+                alt={activity.label || ""} // Provide alt text
+                width={36}
+                height={36}
+                className={iconSize}
+                unoptimized
+            />
+        );
+    }
+
+    switch (type) {
+        case 'correct': // The correct sequence display
+            bgColor = 'bg-blue-50';
+            ringColor = 'ring-blue-200';
+            iconSize = 'w-10 h-10'; // Slightly larger for emphasis
+             if (activity) { // Re-render with correct size
+                content = <Image src={activity.svg} alt={activity.label || ""} width={40} height={40} className={iconSize} unoptimized />;
+            }
+            break;
+        case 'user-correct': // User's input that matched
+            bgColor = 'bg-green-50';
+            ringColor = 'ring-green-300';
+            break;
+        case 'user-incorrect': // The specific item user got wrong
+            bgColor = 'bg-red-50';
+            ringColor = 'ring-red-300';
+            // Optionally add more emphasis like a thicker ring or icon
+            break;
+        case 'missed': // Correct items the user didn't get to input
+             bgColor = 'bg-orange-50'; // Indicate these were missed
+             ringColor = 'ring-orange-200';
+             opacity = 'opacity-60'; // Dim them slightly
+             break;
+        case 'placeholder': // Placeholders in user turn (before failure)
+        default:
+            // Use default styles
+            break;
+    }
+
+    return (
+        <div
+            key={`${type}-${index}-${id || 'empty'}`}
+            className={`p-1.5 rounded-lg ring-1 ${ringColor} ${bgColor} ${opacity}`}
+            title={activity?.label || (type === 'placeholder' ? 'Waiting for input' : 'Incorrect item')}
+        >
+            {content}
+        </div>
+    );
+  };
+
+
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center p-4 text-black"
+      className="min-h-screen flex flex-col items-center justify-center p-4 text-zinc-900 selection:bg-yellow-300"
       style={{ backgroundColor: character.bgColor }}
     >
-      <div className="text-3xl font-semibold mb-3 tracking-tight">
+      {/* Title */}
+      <h1 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight text-center">
         A Perfect Day to Remember
+      </h1>
+
+      {/* Score Display */}
+      <div className="w-full max-w-md mb-4 flex items-center justify-center gap-6 text-sm text-zinc-700">
+        <div className="flex items-baseline space-x-1.5"><span className="font-medium">Round</span><span className="text-lg font-semibold text-zinc-900">{round}</span></div>
+        <div className="flex items-baseline space-x-1.5"><span className="font-medium">High Score</span><span className="text-lg font-semibold text-zinc-900">{highScore}</span></div>
       </div>
 
-      {/* Current Score Display */}
-      <div className="w-full mb-0 flex items-center justify-evenly gap-10">
-        <div className="flex items-center space-x-2">
-          <span className="text-md font-light text-gray-800">Round</span>
-          <span className="text-md text-gray-800">{round}</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <span className="text-md font-light text-gray-800">High Score</span>
-          <span className="text-md text-gray-800">{highScore}</span>
-        </div>
-      </div>
-
+      {/* Main Game Card */}
       <div
-        className="w-full max-w-md rounded-2xl p-8 shadow-md bg-white text-center text-black"
-        style={{
-          fontFamily:
-            '"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif',
-        }}
+        className="w-full max-w-md rounded-2xl p-6 md:p-8 shadow-lg bg-white text-center text-zinc-800"
+        style={{ fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif' }}
       >
-        {/* Feedback message */}
-        {(gameState === "success" || gameState === "failed") && feedback && (
-          <div className="text-lg font-medium mb-4">
-            {feedback.message}
-            <div className="text-sm mt-2">
-              {feedback.success
-                ? "Wait… actually—I just thought of an even better one!"
-                : "Wanna try again? I've got another perfect one!"}
+        {/* State: Waiting to Start */}
+        {gameState === "waiting" && !feedback && ( <div className="text-base italic mb-6 text-zinc-600 px-4"> &quot;Let me show you my perfect day... Think you can remember it all?&quot; </div> )}
+
+        {/* State: Success Feedback */}
+        {gameState === "success" && feedback && (
+            <div className="mb-6">
+                <p className="text-lg font-semibold mb-2 text-green-600">{feedback.message}</p>
+                <p className="text-sm text-zinc-600 mt-1">Nice! Getting ready for round {round + 1}...</p>
             </div>
-          </div>
         )}
 
-        {/* Intro message */}
-        {gameState === "waiting" && (
-          <div className="text-base italic mb-4">
-            &quot;Here&apos;s what I&apos;d do on my perfect day... can you remember it?&quot;
-          </div>
-        )}
-
-        {/* Sequence display */}
+        {/* State: Showing Sequence */}
         {gameState === "showing" && (
-          <div className="mb-6">
-            <div className="text-base font-medium mb-3">
-              Remember this sequence:
-            </div>
-            <div className="flex flex-wrap justify-center gap-3 mb-4">
-              {sequence.map((id, index) => {
-                const activity = getActivityById(id);
-                return (
-                  <div
-                    key={`${id}-${index}`}
-                    className="p-2 bg-blue-50 rounded-lg"
-                  >
-                    <Image
-                      src={activity?.svg || ""}
-                      alt={activity?.label || ""}
-                      width={48}
-                      height={48}
-                      className="w-12 h-12"
-                    />
-                  </div>
-                );
-              })}
+          <div className="mb-8">
+            <p className="text-base font-semibold mb-4 text-zinc-700">Memorize this sequence:</p>
+            {/* Use the render helper for consistency, but force 'correct' style */}
+            <div className="flex flex-wrap justify-center gap-3">
+              {sequence.map((id, index) => renderSequenceItem(id, index, 'correct'))}
             </div>
           </div>
         )}
 
-        {/* User selection options */}
+         {/* State: User's Turn */}
         {gameState === "userTurn" && (
           <div className="mb-6">
-            <div className="text-base font-medium mb-3">
-              Now repeat the sequence:
+            {/* User Input Progress Display */}
+            <div className="mb-5">
+                <p className="text-base font-semibold mb-3 text-zinc-700">Your turn! Repeat the sequence:</p>
+                <div className="flex flex-wrap justify-center gap-2 items-center min-h-[56px]">
+                {/* Show entered items as user-correct */}
+                {userInput.map((id, index) => renderSequenceItem(id, index, 'user-correct'))}
+                {/* Show placeholders for remaining items */}
+                {Array(sequence.length - userInput.length).fill(null).map((_, index) => renderSequenceItem(null, userInput.length + index, 'placeholder'))}
+                </div>
             </div>
-            <div className="flex flex-wrap justify-center gap-2 mb-3">
-              {userInput.map((id, index) => {
-                const activity = getActivityById(id);
-                return (
-                  <div
-                    key={`input-${index}`}
-                    className="p-2 bg-green-50 rounded-lg"
-                  >
-                    <Image
-                      src={activity?.svg || ""}
-                      alt={activity?.label || ""}
-                      width={40}
-                      height={40}
-                      className="w-10 h-10"
-                    />
-                  </div>
-                );
-              })}
-              {Array(sequence.length - userInput.length)
-                .fill(0)
-                .map((_, index) => (
-                  <div
-                    key={`empty-${index}`}
-                    className="p-2 bg-gray-100 rounded-lg"
-                  >
-                    <div className="w-10 h-10 flex items-center justify-center text-gray-400">
-                      ?
-                    </div>
-                  </div>
-                ))}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {character.activities.map((activity) => (
-                <button
-                  key={activity.id}
-                  onClick={() => handleUserTap(activity.id)}
-                  className="p-4 rounded-xl transition-all bg-gray-50 hover:bg-gray-100 shadow-sm"
-                  disabled={gameState !== "userTurn"}
-                >
-                  <Image
-                    src={activity.svg}
-                    alt={activity.label}
-                    width={64}
-                    height={64}
-                    className="w-16 h-16 mx-auto mb-2"
-                  />
-                  <div className="text-sm font-medium text-gray-800">
-                    {activity.label}
-                  </div>
-                </button>
-              ))}
+            {/* Activity Selection Buttons */}
+            <div className="grid grid-cols-2 gap-3 md:gap-4">
+              {character.activities.map((activity) => ( <button key={activity.id} onClick={() => handleUserTap(activity.id)} className={` p-4 rounded-xl transition-all duration-150 ease-in-out bg-slate-50 hover:bg-slate-100 border border-slate-200 active:scale-95 active:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100 `} disabled={gameState !== "userTurn"} > <Image src={activity.svg} alt="" width={56} height={56} className="w-14 h-14 mx-auto mb-1.5" unoptimized /> <div className="text-sm font-medium text-zinc-800 text-center truncate px-1"> {activity.label} </div> </button> ))}
             </div>
           </div>
         )}
 
-        <div className="flex justify-between items-center">
-          <div className="text-sm font-medium text-gray-700 opacity-0">
-            {/* Hidden element to maintain layout balance */}
-            Placeholder
+        {/* --- State: Failed --- */}
+        {gameState === "failed" && feedback && failureIndex !== null && (
+          <div className="mb-6">
+            {/* Failure Message */}
+            <p className="text-lg font-semibold mb-4 text-red-600">{feedback.message}</p>
+
+            {/* Correct Sequence Display */}
+            <div className="mb-3">
+                <p className="text-sm font-semibold text-zinc-600 mb-2">The Correct Sequence:</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                    {sequence.map((id, index) => renderSequenceItem(id, index, 'correct'))}
+                </div>
+            </div>
+
+            {/* User Input Display with Highlight */}
+            <div className="mb-5">
+                <p className="text-sm font-semibold text-zinc-600 mb-2">Your Input:</p>
+                 <div className="flex flex-wrap justify-center gap-2">
+                    {sequence.map((id, index) => {
+                        if (index < failureIndex) {
+                            // Correctly entered items
+                            return renderSequenceItem(userInput[index], index, 'user-correct');
+                        } else if (index === failureIndex) {
+                            // The incorrect item
+                            return renderSequenceItem(userInput[index], index, 'user-incorrect');
+                        } else {
+                             // Items after the mistake (or items not reached if input is shorter)
+                             // Show the correct item but styled as 'missed'
+                             return renderSequenceItem(id, index, 'missed');
+                        }
+                    })}
+                     {/* If user input was shorter than failure index (shouldn't happen with current logic, but safe) */}
+                     { failureIndex >= userInput.length &&
+                       Array(sequence.length - userInput.length).fill(null).map((_, idx) =>
+                          renderSequenceItem(sequence[userInput.length + idx], userInput.length + idx, 'missed')
+                       )
+                     }
+                </div>
+            </div>
+            <p className="text-sm text-zinc-600 mt-4">
+                No worries, remembering can be tricky! Want to try again from the start?
+            </p>
           </div>
+        )}
 
-          {gameState === "waiting" && (
-            <button
-              onClick={showSequence}
-              className="px-5 py-2.5 bg-black text-white rounded-full hover:bg-gray-800 transition-colors font-medium"
-              style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)" }}
-            >
-              Play
-            </button>
-          )}
 
-          {gameState === "showing" && (
-            <div
-              className="px-5 py-2.5 bg-amber-500 text-white rounded-full font-medium flex items-center relative overflow-hidden"
-              style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)" }}
-            >
-              {/* Progress bar overlay */}
-              <div
-                className="absolute top-0 left-0 h-full bg-orange-500 transition-all duration-100 ease-linear"
-                style={{
-                  width: `${100 - countdownProgress}%`,
-                  transition: "width 50ms linear",
-                }}
-              ></div>
-
-              {/* Content (always visible above the progress bar) */}
-              <div className="flex items-center z-10 relative">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-1.5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                  <path
-                    fillRule="evenodd"
-                    d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Memorize
-              </div>
-            </div>
-          )}
-
-          {gameState === "userTurn" && (
-            <div
-              className="px-5 py-2.5 bg-green-500 text-white rounded-full font-medium flex items-center"
-              style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)" }}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 mr-1.5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              {userInput.length}/{sequence.length}
-            </div>
-          )}
-
-          {gameState === "failed" && (
-            <button
-              onClick={() => {
-                setRound(1); // Reset to round 1 when failed
-                setGameState("waiting");
-              }}
-              className="px-5 py-2.5 bg-black text-white rounded-full hover:bg-gray-800 transition-colors font-medium flex items-center"
-              style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)" }}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 mr-1.5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Try Again
-            </button>
-          )}
+        {/* Action Button Area */}
+        <div className="flex justify-center items-center min-h-[44px] mt-4">
+          {/* State: Waiting Button */}
+          {gameState === "waiting" && ( <button onClick={showSequence} className="px-6 py-2.5 bg-zinc-900 text-white rounded-full hover:bg-zinc-700 transition-colors font-semibold text-base focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-900 shadow-sm"> ▶ Play Round {round} </button> )}
+          {/* State: Showing Sequence Indicator */}
+          {gameState === "showing" && ( <div className="px-5 py-2.5 bg-amber-500 text-white rounded-full font-medium text-sm flex items-center relative overflow-hidden shadow-sm" role="progressbar" aria-valuenow={100 - countdownProgress} aria-valuemin={0} aria-valuemax={100} aria-label="Memorizing sequence progress"> <div className="absolute top-0 left-0 bottom-0 bg-amber-600 transition-width duration-100 ease-linear" style={{ width: `${100 - countdownProgress}%` }}></div> <div className="flex items-center z-10 relative"> <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" /></svg> Memorize... </div> </div> )}
+          {/* State: User Turn Progress Indicator */}
+          {gameState === "userTurn" && ( <div className="px-5 py-2.5 bg-green-600 text-white rounded-full font-medium text-sm flex items-center shadow-sm" role="status"> <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg> Your Turn ({userInput.length}/{sequence.length}) </div> )}
+          {/* State: Failed Button */}
+          {gameState === "failed" && ( <button onClick={resetGame} className="px-6 py-2.5 bg-zinc-900 text-white rounded-full hover:bg-zinc-700 transition-colors font-semibold text-base flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-900 shadow-sm"> <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" /></svg> Try Again? </button> )}
+          {/* Placeholder during success */}
+          {gameState === "success" && ( <div className="px-6 py-2.5 opacity-0">Success!</div> )}
         </div>
-      </div>
-      <div className="flex-col items-left justify-left w-full">
-        <Image
-          src={character.imageSrc}
-          alt={character.name}
-          width={80}
-          height={80}
-          className="w-20 h-20 mr-3"
-        />
-        {/* <div className="text-gray-800 font-medium text-left">
-          {character.name}
-        </div> */}
-      </div>
+      </div> {/* End Game Card */}
+
+      {/* Character Image */}
+       <div className="mt-6 flex flex-col items-center">
+        <Image src={character.imageSrc} alt={character.name} width={140} height={140} className="w-32 h-32 md:w-36 md:h-36 drop-shadow-md" priority />
+       </div>
     </div>
   );
 }
