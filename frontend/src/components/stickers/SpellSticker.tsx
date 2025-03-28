@@ -88,7 +88,6 @@ function SpellSticker() {
   // Incantation puzzle states
   const [shuffledWords, setShuffledWords] = useState<string[]>([]);
   const [chosenWords, setChosenWords] = useState<string[]>([]);
-  // Removed unused incantationFull variable
 
   // Final results
   const [finalAffirmation, setFinalAffirmation] = useState("");
@@ -278,7 +277,7 @@ Stats:
         <div className="absolute top-1/4 left-1/4 w-32 h-32 rounded-full bg-purple-300 blur-3xl animate-pulse"></div>
         <div className="absolute bottom-1/4 right-1/4 w-40 h-40 rounded-full bg-blue-300 blur-3xl animate-pulse"></div>
       </div>
-      
+
       <div className="text-6xl mb-4">✨</div>
       <h1 className="text-4xl font-bold mb-4 text-gray-900 text-center bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">
         Stress-Relief Spell
@@ -303,7 +302,7 @@ Stats:
         (best, current) => (current[1] > best[1] ? current : best),
         ["", 0]
       );
-      const ingredient = ingredients.find(i => i.name === topIngredient);
+      const ingredient = ingredients.find((i) => i.name === topIngredient);
       if (ingredient) {
         setActiveThemeColor(ingredient.color);
       }
@@ -311,16 +310,17 @@ Stats:
   }, [selectedIngredients]);
 
   const renderIngredientSelection = () => {
-    
     return (
       <div className="flex flex-col items-center p-6 w-full max-w-md mx-auto">
         <div className="w-full mb-4 text-center">
           <h2 className="text-2xl font-bold mb-2 text-gray-800">
             Choose Your Magical Ingredients
           </h2>
-          <p className="text-gray-600">Tap ingredients to add them to your spell</p>
+          <p className="text-gray-600">
+            Tap ingredients to add them to your spell
+          </p>
         </div>
-        
+
         <div className="grid grid-cols-2 gap-4 w-full">
           {ingredients.map((item) => {
             const count = selectedIngredients[item.name] || 0;
@@ -330,57 +330,69 @@ Stats:
                 onClick={() => handleIngredientClick(item.name)}
                 className="flex flex-col items-center justify-center p-3 bg-white rounded-md shadow-sm border relative"
                 style={{
-                  borderColor: count > 0 ? item.color : '#eaeaea',
-                  borderWidth: count > 0 ? '2px' : '1px'
+                  borderColor: count > 0 ? item.color : "#eaeaea",
+                  borderWidth: count > 0 ? "2px" : "1px",
                 }}
               >
                 {count > 0 && (
-                  <span className="absolute top-1 right-1 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
-                        style={{backgroundColor: item.color}}>
+                  <span
+                    className="absolute top-1 right-1 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+                    style={{ backgroundColor: item.color }}
+                  >
                     {count}
                   </span>
                 )}
                 <span className="text-2xl mb-1">{item.emoji}</span>
-                <span className="text-xs font-medium text-gray-800">{item.name}</span>
+                <span className="text-xs font-medium text-gray-800">
+                  {item.name}
+                </span>
               </button>
             );
           })}
         </div>
-        
+
         <div className="mt-6 w-full bg-white p-3 rounded-md shadow-sm border border-gray-200">
           <h3 className="text-md font-medium text-gray-800 mb-2 flex items-center">
             <span className="mr-1">🧪</span> Your Brew
           </h3>
-          
+
           {Object.entries(selectedIngredients).length === 0 ? (
-            <p className="text-gray-500 text-xs mb-2">Add some ingredients to your cauldron</p>
+            <p className="text-gray-500 text-xs mb-2">
+              Add some ingredients to your cauldron
+            </p>
           ) : (
             <ul className="mb-2 space-y-1">
               {Object.entries(selectedIngredients).map(([name, count]) => {
-                const ingredient = ingredients.find(i => i.name === name);
+                const ingredient = ingredients.find((i) => i.name === name);
                 return (
                   <li key={name} className="flex items-center text-sm">
                     <span className="mr-1">{ingredient?.emoji}</span>
                     <span className="text-gray-800">{name}</span>
-                    <span className="ml-auto font-medium" style={{color: ingredient?.color}}>×{count}</span>
+                    <span
+                      className="ml-auto font-medium"
+                      style={{ color: ingredient?.color }}
+                    >
+                      ×{count}
+                    </span>
                   </li>
                 );
               })}
             </ul>
           )}
-          
+
           <button
             onClick={handleGoToIncantationGame}
             disabled={Object.keys(selectedIngredients).length === 0}
             className={`w-full py-3 px-4 rounded-lg font-medium text-white shadow-sm transform transition-all duration-300 ${
-              Object.keys(selectedIngredients).length === 0 
-                ? 'bg-gray-400 cursor-not-allowed' 
+              Object.keys(selectedIngredients).length === 0
+                ? "bg-gray-400 cursor-not-allowed"
                 : `bg-gradient-to-r hover:shadow-md hover:scale-[1.02] active:scale-[0.98]`
             }`}
             style={{
-              backgroundImage: Object.keys(selectedIngredients).length === 0 
-                ? 'none' 
-                : `linear-gradient(to right, ${activeThemeColor}, ${activeThemeColor}DD)`
+              backgroundImage:
+                Object.keys(selectedIngredients).length === 0
+                  ? "none"
+                  : `linear-gradient(to right, ${activeThemeColor}, ${activeThemeColor}DD)`,
             }}
           >
             Continue to Incantation <span className="ml-1">→</span>
@@ -394,8 +406,12 @@ Stats:
   const renderIncantationGame = () => (
     <div className="flex flex-col items-center p-6 w-full max-w-md mx-auto">
       <div className="w-full mb-6 text-center">
-        <h2 className="text-2xl font-bold mb-3 bg-clip-text text-transparent"
-            style={{backgroundImage: `linear-gradient(to right, ${activeThemeColor}, ${activeThemeColor}CC)`}}>
+        <h2
+          className="text-2xl font-bold mb-3 bg-clip-text text-transparent"
+          style={{
+            backgroundImage: `linear-gradient(to right, ${activeThemeColor}, ${activeThemeColor}CC)`,
+          }}
+        >
           Craft Your Magical Words
         </h2>
         <p className="text-gray-600 mb-2">
@@ -414,20 +430,27 @@ Stats:
               key={`${word}-${idx}`}
               onClick={() => handleWordClick(word, idx)}
               className="bg-white text-gray-800 px-3 py-2 rounded-lg hover:bg-gray-100 transition-all duration-200 border border-gray-200 shadow-sm hover:shadow transform hover:scale-105 active:scale-95"
-              style={{borderLeftColor: activeThemeColor, borderLeftWidth: '3px'}}
+              style={{
+                borderLeftColor: activeThemeColor,
+                borderLeftWidth: "3px",
+              }}
             >
               {word}
             </button>
           ))}
           {shuffledWords.length === 0 && (
-            <p className="text-gray-400 italic text-sm">All words have been used</p>
+            <p className="text-gray-400 italic text-sm">
+              All words have been used
+            </p>
           )}
         </div>
       </div>
 
       {/* Incantation preview */}
-      <div className="w-full bg-white rounded-xl border border-gray-200 p-4 mb-6 shadow-sm"
-           style={{borderLeftColor: activeThemeColor, borderLeftWidth: '4px'}}>
+      <div
+        className="w-full bg-white rounded-xl border border-gray-200 p-4 mb-6 shadow-sm"
+        style={{ borderLeftColor: activeThemeColor, borderLeftWidth: "4px" }}
+      >
         <p className="text-gray-700 mb-3 font-medium flex items-center">
           <span className="mr-2">✨</span> Your Incantation:
         </p>
@@ -437,14 +460,21 @@ Stats:
               key={`chosen-${word}-${idx}`}
               onClick={() => handleRemoveChosenWord(word, idx)}
               className="relative group bg-white text-gray-800 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-all duration-200 border border-gray-200 shadow-sm"
-              style={{borderBottomColor: activeThemeColor, borderBottomWidth: '2px'}}
+              style={{
+                borderBottomColor: activeThemeColor,
+                borderBottomWidth: "2px",
+              }}
             >
               <span>{word}</span>
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">×</span>
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                ×
+              </span>
             </button>
           ))}
           {chosenWords.length === 0 && (
-            <p className="text-gray-400 italic text-sm self-center">Select words to build your incantation</p>
+            <p className="text-gray-400 italic text-sm self-center">
+              Select words to build your incantation
+            </p>
           )}
         </div>
         <p className="text-gray-500 text-xs">
@@ -463,14 +493,15 @@ Stats:
         onClick={handleConfirmIncantation}
         disabled={chosenWords.length === 0}
         className={`w-full py-3 px-4 rounded-lg font-medium text-white shadow-sm transform transition-all duration-300 ${
-          chosenWords.length === 0 
-            ? 'bg-gray-400 cursor-not-allowed' 
-            : 'hover:shadow-md hover:scale-[1.02] active:scale-[0.98]'
+          chosenWords.length === 0
+            ? "bg-gray-400 cursor-not-allowed"
+            : "hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
         }`}
         style={{
-          backgroundImage: chosenWords.length === 0 
-            ? 'none' 
-            : `linear-gradient(to right, ${activeThemeColor}, ${activeThemeColor}DD)`
+          backgroundImage:
+            chosenWords.length === 0
+              ? "none"
+              : `linear-gradient(to right, ${activeThemeColor}, ${activeThemeColor}DD)`,
         }}
       >
         <span className="flex items-center justify-center">
@@ -489,27 +520,57 @@ Stats:
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-6xl">🧪</div>
         </div>
-        
+
         {/* Animated bubbles */}
-        <div className="absolute top-1/4 left-1/4 w-2 h-2 rounded-full bg-purple-400 animate-ping" style={{animationDuration: '1.5s', animationDelay: '0.2s'}}></div>
-        <div className="absolute top-1/3 right-1/3 w-3 h-3 rounded-full bg-blue-400 animate-ping" style={{animationDuration: '1.3s', animationDelay: '0.5s'}}></div>
-        <div className="absolute bottom-1/3 left-1/3 w-2 h-2 rounded-full bg-pink-400 animate-ping" style={{animationDuration: '1.7s', animationDelay: '0.1s'}}></div>
-        
+        <div
+          className="absolute top-1/4 left-1/4 w-2 h-2 rounded-full bg-purple-400 animate-ping"
+          style={{ animationDuration: "1.5s", animationDelay: "0.2s" }}
+        ></div>
+        <div
+          className="absolute top-1/3 right-1/3 w-3 h-3 rounded-full bg-blue-400 animate-ping"
+          style={{ animationDuration: "1.3s", animationDelay: "0.5s" }}
+        ></div>
+        <div
+          className="absolute bottom-1/3 left-1/3 w-2 h-2 rounded-full bg-pink-400 animate-ping"
+          style={{ animationDuration: "1.7s", animationDelay: "0.1s" }}
+        ></div>
+
         {/* Sparkles */}
-        <div className="absolute -top-4 -left-4 text-2xl animate-bounce" style={{animationDuration: '2s'}}>✨</div>
-        <div className="absolute -top-4 -right-4 text-2xl animate-bounce" style={{animationDuration: '2.3s'}}>✨</div>
-        <div className="absolute -bottom-4 -left-4 text-2xl animate-bounce" style={{animationDuration: '1.8s'}}>✨</div>
-        <div className="absolute -bottom-4 -right-4 text-2xl animate-bounce" style={{animationDuration: '2.2s'}}>✨</div>
-        
-        {/* Swirling background */}
-        <div className="absolute inset-0 -z-10 rounded-full opacity-20 animate-spin" 
-             style={{
-               backgroundImage: `conic-gradient(${activeThemeColor}88, transparent, ${activeThemeColor}44, transparent)`,
-               animationDuration: '3s'
-             }}>
+        <div
+          className="absolute -top-4 -left-4 text-2xl animate-bounce"
+          style={{ animationDuration: "2s" }}
+        >
+          ✨
         </div>
+        <div
+          className="absolute -top-4 -right-4 text-2xl animate-bounce"
+          style={{ animationDuration: "2.3s" }}
+        >
+          ✨
+        </div>
+        <div
+          className="absolute -bottom-4 -left-4 text-2xl animate-bounce"
+          style={{ animationDuration: "1.8s" }}
+        >
+          ✨
+        </div>
+        <div
+          className="absolute -bottom-4 -right-4 text-2xl animate-bounce"
+          style={{ animationDuration: "2.2s" }}
+        >
+          ✨
+        </div>
+
+        {/* Swirling background */}
+        <div
+          className="absolute inset-0 -z-10 rounded-full opacity-20 animate-spin"
+          style={{
+            backgroundImage: `conic-gradient(${activeThemeColor}88, transparent, ${activeThemeColor}44, transparent)`,
+            animationDuration: "3s",
+          }}
+        ></div>
       </div>
-      
+
       <p className="text-gray-800 text-xl font-medium text-center mb-2">
         Brewing your magical spell...
       </p>
@@ -533,21 +594,43 @@ Stats:
   // 5. Final Screen with Enhanced Flippable Card
   const renderFinalScreen = () => {
     // Find the ingredient object for the most used ingredient
-    const topIngredient = ingredients.find(i => i.name === mostUsedIngredient);
+    const topIngredient = ingredients.find(
+      (i) => i.name === mostUsedIngredient
+    );
     const cardColor = topIngredient?.color || activeThemeColor;
-    
+
     return (
       <div className="flex flex-col items-center p-6 text-center w-full max-w-md mx-auto relative">
         {/* Floating sparkles animation */}
         {showSparkles && (
           <>
-            <div className="absolute top-10 left-10 text-2xl animate-ping" style={{animationDuration: '1s'}}>✨</div>
-            <div className="absolute top-20 right-20 text-xl animate-ping" style={{animationDuration: '1.5s'}}>✨</div>
-            <div className="absolute bottom-40 left-20 text-2xl animate-ping" style={{animationDuration: '1.2s'}}>✨</div>
-            <div className="absolute bottom-20 right-10 text-xl animate-ping" style={{animationDuration: '0.8s'}}>✨</div>
+            <div
+              className="absolute top-10 left-10 text-2xl animate-ping"
+              style={{ animationDuration: "1s" }}
+            >
+              ✨
+            </div>
+            <div
+              className="absolute top-20 right-20 text-xl animate-ping"
+              style={{ animationDuration: "1.5s" }}
+            >
+              ✨
+            </div>
+            <div
+              className="absolute bottom-40 left-20 text-2xl animate-ping"
+              style={{ animationDuration: "1.2s" }}
+            >
+              ✨
+            </div>
+            <div
+              className="absolute bottom-20 right-10 text-xl animate-ping"
+              style={{ animationDuration: "0.8s" }}
+            >
+              ✨
+            </div>
           </>
         )}
-        
+
         <div className="w-full mb-4 text-center">
           <h2 className="text-2xl font-bold mb-2 text-gray-800">
             Your Spell Is Ready!
@@ -558,11 +641,10 @@ Stats:
         </div>
 
         {/* Flippable card */}
-        <div 
+        <div
           className="relative w-full max-w-sm h-64 [perspective:1000px] mb-4 cursor-pointer"
           onClick={() => setCardFlipped(!cardFlipped)}
         >
-          
           {/* Inner wrapper with rotating transform */}
           <div
             className={`absolute w-full h-full transition-all duration-700 [transform-style:preserve-3d] ${
@@ -570,26 +652,34 @@ Stats:
             }`}
           >
             {/* Card Front - Incantation & Affirmation */}
-            <div 
+            <div
               className="bg-white absolute w-full h-full [backface-visibility:hidden] flex flex-col items-center justify-between p-4 rounded-md shadow border"
-              style={{borderTop: `4px solid ${cardColor}`}}
+              style={{ borderTop: `4px solid ${cardColor}` }}
             >
-              <div className="absolute top-2 right-2 text-gray-400 text-xs">{spellRarity}</div>
-              
-              <div className="w-10 h-10 flex items-center justify-center mb-1">
-                <span className="text-xl">{topIngredient?.emoji || '✨'}</span>
+              <div className="absolute top-2 right-2 text-gray-400 text-xs">
+                {spellRarity}
               </div>
-              
+
+              <div className="w-10 h-10 flex items-center justify-center mb-1">
+                <span className="text-xl">{topIngredient?.emoji || "✨"}</span>
+              </div>
+
               <div className="flex-1 flex flex-col items-center justify-center w-full">
-                <h3 className="font-medium text-gray-500 uppercase text-xs mb-1">Incantation</h3>
+                <h3 className="font-medium text-gray-500 uppercase text-xs mb-1">
+                  Incantation
+                </h3>
                 <p className="mb-3 italic text-gray-800 text-sm px-2 text-center">
                   &quot;{getFinalIncantation()}&quot;
                 </p>
-                
-                <h3 className="font-medium text-gray-500 uppercase text-xs mb-1">Affirmation</h3>
-                <p className="text-gray-800 px-2 text-center text-sm">{finalAffirmation}</p>
+
+                <h3 className="font-medium text-gray-500 uppercase text-xs mb-1">
+                  Affirmation
+                </h3>
+                <p className="text-gray-800 px-2 text-center text-sm">
+                  {finalAffirmation}
+                </p>
               </div>
-              
+
               <div className="text-gray-400 text-xs mt-1 flex items-center">
                 <span>Tap to flip</span>
                 <span className="ml-1">↻</span>
@@ -597,36 +687,46 @@ Stats:
             </div>
 
             {/* Card Back - Stats */}
-            <div 
+            <div
               className="bg-white absolute w-full h-full [transform:rotateY(180deg)] [backface-visibility:hidden] flex flex-col items-center justify-between p-4 rounded-md shadow border"
-              style={{borderBottom: `4px solid ${cardColor}`}}
+              style={{ borderBottom: `4px solid ${cardColor}` }}
             >
-              <h3 className="font-medium text-gray-800 text-md mb-2">Spell Statistics</h3>
-              
+              <h3 className="font-medium text-gray-800 text-md mb-2">
+                Spell Statistics
+              </h3>
+
               <div className="flex-1 flex flex-col items-center justify-center w-full space-y-2">
                 <div className="w-full flex justify-between items-center p-1.5 border border-gray-100 rounded">
-                  <span className="text-gray-700 text-xs">Total Ingredients</span>
-                  <span className="font-medium text-gray-900 text-sm">{totalAdded}</span>
+                  <span className="text-gray-700 text-xs">
+                    Total Ingredients
+                  </span>
+                  <span className="font-medium text-gray-900 text-sm">
+                    {totalAdded}
+                  </span>
                 </div>
-                
+
                 <div className="w-full flex justify-between items-center p-1.5 border border-gray-100 rounded">
                   <span className="text-gray-700 text-xs">Most Used</span>
                   <span className="font-medium text-gray-900 text-sm flex items-center">
                     {topIngredient?.emoji} {mostUsedIngredient}
                   </span>
                 </div>
-                
+
                 <div className="w-full flex justify-between items-center p-1.5 border border-gray-100 rounded">
                   <span className="text-gray-700 text-xs">Rarity</span>
-                  <span className="font-medium text-gray-900 text-sm">{spellRarity}</span>
+                  <span className="font-medium text-gray-900 text-sm">
+                    {spellRarity}
+                  </span>
                 </div>
-                
+
                 <div className="w-full flex justify-between items-center p-1.5 border border-gray-100 rounded">
                   <span className="text-gray-700 text-xs">Spells Cast</span>
-                  <span className="font-medium text-gray-900 text-sm">{spellsCast}</span>
+                  <span className="font-medium text-gray-900 text-sm">
+                    {spellsCast}
+                  </span>
                 </div>
               </div>
-              
+
               <div className="text-gray-400 text-xs mt-1 flex items-center">
                 <span>Tap to flip</span>
                 <span className="ml-1">↻</span>
@@ -648,7 +748,7 @@ Stats:
           <button
             onClick={handleCastAnother}
             className="flex items-center px-3 py-1.5 rounded text-sm text-white"
-            style={{backgroundColor: cardColor}}
+            style={{ backgroundColor: cardColor }}
           >
             <span className="mr-1">✨</span>
             <span>New Spell</span>

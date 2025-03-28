@@ -2,18 +2,23 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getSticker } from "../../../lib/data";
+import { getCharacterConfig, getSticker } from "../../../lib/data";
 
 // Import individual sticker components
+import DoNotPressButton from "../../../components/stickers/DoNotPressButton";
 import FortuneSticker from "../../../components/stickers/FortuneSticker";
 import LemonomicsSticker from "../../../components/stickers/LemonomicsSticker";
+import PerfectDayToRememberSticker from "../../../components/stickers/PerfectDayToRememberSticker";
 import PetSticker from "../../../components/stickers/PetSticker";
 import SpellSticker from "../../../components/stickers/SpellSticker";
 
 export default function StickerPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const slug = searchParams.get("friend");
+  const character = getCharacterConfig(slug ?? "capybara");
   const { id } = useParams() as { id: string };
   const sticker = getSticker(id);
   const [mounted, setMounted] = useState(false);
@@ -49,6 +54,10 @@ export default function StickerPage() {
       case "art":
       case "lemonomics":
         return <LemonomicsSticker />;
+      case "perfect-day":
+        return <PerfectDayToRememberSticker character={character} />;
+      case "button":
+        return <DoNotPressButton />;
       default:
         return <div>Coming soon!</div>;
     }
@@ -56,10 +65,10 @@ export default function StickerPage() {
 
   return (
     <div
-      className="sticker-page flex flex-col items-center min-h-screen p-4"
+      className="sticker-page flex flex-col items-center h-screen p-4"
       style={{ backgroundColor: `${sticker.color}30` }} // Light version of sticker color
     >
-      <div className="mb-4 flex items-center w-full">
+      <div className="flex items-center w-full mb-4">
         <button
           onClick={() => router.push("/")}
           className="text-slate-700 flex items-center"
@@ -81,7 +90,7 @@ export default function StickerPage() {
         </button>
       </div>
 
-      <div className="sticker-content-container w-full max-w-md p-4 bg-white rounded-2xl shadow-lg mb-6">
+      <div className="sticker-content-container w-full max-w-md flex-grow flex flex-col justify-center p-4 bg-white rounded-2xl shadow-lg">
         {renderStickerContent()}
       </div>
     </div>

@@ -5,7 +5,17 @@ export interface Sticker {
   name: string;
   description: string;
   color: string;
-  type: "fortune" | "pet" | "weather" | "music" | "game" | "art" | "spell" | "lemonomics";
+  type:
+    | "fortune"
+    | "pet"
+    | "weather"
+    | "music"
+    | "game"
+    | "art"
+    | "spell"
+    | "lemonomics"
+    | "perfect-day"
+    | "button";
   imageSrc: string;
-  animation?: 'bounce' | 'pulse' | 'wiggle' | 'spin' | 'float';
+  animation?: "bounce" | "pulse" | "wiggle" | "spin" | "float";
 }
