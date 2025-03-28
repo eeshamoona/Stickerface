@@ -48,10 +48,6 @@ export default function StickerPage() {
         return <PetSticker />;
       case "spell":
         return <SpellSticker />;
-      case "weather":
-      case "music":
-      case "game":
-      case "art":
       case "purrfect-timing":
         return <PurrfectTiming />;
       case "perfect-day":
@@ -66,30 +62,8 @@ export default function StickerPage() {
   return (
     <div
       className="sticker-page flex flex-col items-center h-screen p-4"
-      style={{ backgroundColor: `${sticker.color}30` }} // Light version of sticker color
+      style={{ backgroundColor: `${sticker.color}80` }} // Assuming a hex code with added alpha for transparency
     >
-      <div className="flex items-center w-full mb-4">
-        <button
-          onClick={() => router.push("/")}
-          className="text-slate-700 flex items-center"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-          <span className="ml-2">Back</span>
-        </button>
-      </div>
-
       <div className="sticker-content-container w-full max-w-md flex-grow flex flex-col justify-center p-4 bg-white rounded-2xl shadow-lg">
         {renderStickerContent()}
       </div>

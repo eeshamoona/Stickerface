@@ -8,10 +8,6 @@ export interface Sticker {
   type:
     | "fortune"
     | "pet"
-    | "weather"
-    | "music"
-    | "game"
-    | "art"
     | "spell"
     | "perfect-day"
     | "button"

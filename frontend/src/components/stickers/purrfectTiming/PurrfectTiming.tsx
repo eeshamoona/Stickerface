@@ -355,10 +355,12 @@ const PurrfectTiming: React.FC = () => {
       {/* Action Area (Button or Hint) */}
       <div className={styles.actionArea}>
         {gameState === "result" || gameState === "failed" ? (
-          <p className={styles.idleHint}>Press & Hold Scene to Try Again</p>
+          <p className={styles.idleHint}>
+            Press & Hold Calico Cat to Try Again
+          </p>
         ) : (
           <p className={styles.idleHint}>
-            {isPetting ? "Release Gently..." : "Press & Hold Scene"}
+            {isPetting ? "Release Gently..." : "Press & Hold Calico Cat"}
           </p>
         )}
       </div>

@@ -1,8 +1,8 @@
 // src/components/Sticker.tsx
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { animations } from "../lib/animations";
 import type { Sticker } from "../types";
@@ -12,7 +12,10 @@ interface StickerProps {
   isSheet?: boolean;
 }
 
-export default function StickerComponent({ sticker, isSheet = true }: StickerProps) {
+export default function StickerComponent({
+  sticker,
+  isSheet = true,
+}: StickerProps) {
   const [pressed, setPressed] = useState(false);
 
   const handlePress = () => {
@@ -30,7 +33,7 @@ export default function StickerComponent({ sticker, isSheet = true }: StickerPro
 
   const content = (
     <div
-      className="sticker-container relative rounded-full w-24 h-24 flex items-center justify-center shadow-lg cursor-pointer overflow-hidden hover:shadow-xl"
+      className="sticker-container relative rounded-full w-24 h-24 flex items-center justify-center cursor-pointer overflow-hidden"
       style={stickerStyle}
       onMouseDown={handlePress}
       onTouchStart={handlePress}

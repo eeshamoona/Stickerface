@@ -1,16 +1,15 @@
-/* PurrfectTiming Styles */
-
 /* Color variables defined in a CSS module compatible way */
 .container {
   /* Cat colors */
-  --cat-orange: #f9a825;
-  --cat-black: #333;
-  --bed-purple: #a884f3;
-  --blanket-pink: #e8a0e8;
-  --paw-pink: #d81b60;
-  --plant-green: #4caf50;
-  --plant-pot-red: #e53935;
-  --fish-blue: #29b6f6;
+  --cat-orange: #fa822a;
+  --cat-black: #262626;
+  --bed-purple: #af90ff;
+  --blanket-pink: #e291d3;
+  --paw-pink: #a42e8f;
+  --plant-green: #58a868;
+  --plant-pot-red: #eb3d2b;
+  --fish-blue-light: #30bcf3;
+  --fish-blue-dark: #266ef0;
 
   /* UI colors */
   --bg-grey: #f4effb;
@@ -34,23 +33,23 @@
   display: inline-block;
   animation: wave 1.5s ease-in-out infinite;
   margin: 0 1px;
-  color: var(--paw-pink);
+  color: var(--blanket-pink);
   font-weight: 600;
   font-size: 1.5rem;
   transition: opacity 0.5s ease-in-out;
   line-height: 1.5;
 }
 
-.pettingLetter:nth-child(3n) {
+.pettingLetter:nth-child(4n) {
   color: var(--cat-orange);
 }
 
-.pettingLetter:nth-child(3n + 1) {
+.pettingLetter:nth-child(4n + 1) {
   color: var(--bed-purple);
 }
 
-.pettingLetter:nth-child(3n + 2) {
-  color: var(--fish-blue);
+.pettingLetter:nth-child(4n + 2) {
+  color: var(--fish-blue-light);
 }
 
 /* Animations */
@@ -125,31 +124,6 @@
   }
 }
 
-@keyframes boltAnimation {
-  0% {
-    transform: translateX(0) scale(1);
-    opacity: 1;
-  }
-  30% {
-    transform: translateX(-15px) scale(1.05);
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(150px) scale(0.5);
-    opacity: 0;
-  }
-}
-
-@keyframes textPulse {
-  0%,
-  100% {
-    opacity: 0.7;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
 /* Container & Layout */
 .container {
   font-family: "Quicksand", sans-serif;
@@ -162,7 +136,7 @@
 .gameTitle {
   font-size: 1.8rem;
   font-weight: 700;
-  color: var(--text-dark);
+  color: var(--bed-purple);
   margin: 0.5rem 0 1rem 0;
   order: 0;
   flex-shrink: 0;
