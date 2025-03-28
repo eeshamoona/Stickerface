@@ -1,32 +1,32 @@
 // src/lib/animations.ts
 export const animations = {
   bounce: {
-    animation: 'bounce 2s ease-in-out infinite'
+    animation: "bounce 2s ease-in-out infinite",
   },
   pulse: {
-    animation: 'pulse 1.5s ease-in-out infinite'
+    animation: "pulse 1.5s ease-in-out infinite",
   },
   wiggle: {
-    animation: 'wiggle 2s ease-in-out infinite'
+    animation: "wiggle 2s ease-in-out infinite",
   },
   spin: {
-    animation: 'spin 8s linear infinite'
+    animation: "spin 8s linear infinite",
   },
   float: {
-    animation: 'float 3s ease-in-out infinite'
+    animation: "float 3s ease-in-out infinite",
   },
   // Button animations
   shake: {
-    animation: 'shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both'
+    animation: "shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both",
   },
   jump: {
-    animation: 'jump 1.2s ease-in-out',
-    transformOrigin: 'center bottom'
+    animation: "jump 1.2s ease-in-out",
+    transformOrigin: "center bottom",
   },
   wobble: {
-    animation: 'wobble 1s ease-in-out',
-    transformOrigin: 'center center'
-  }
+    animation: "wobble 1s ease-in-out",
+    transformOrigin: "center center",
+  },
 };
 
 // Button animation keyframes
@@ -115,4 +115,3 @@ export const buttonKeyframes = `
     }
   }
 `;
-  

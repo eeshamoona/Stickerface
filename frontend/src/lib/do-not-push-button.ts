@@ -85,7 +85,6 @@ export const uniqueMessages: string[] = [
   "Do you think the button on the *other* side of the screen is lonely?",
   "I'm not interactive, I'm just... here.",
   "This must be thrilling for you.",
-  // Add MANY more unique messages here! Aim for 100+ to start.
 ];
 
 // --- Enhanced Procedural Generation ---
@@ -95,7 +94,7 @@ function pickRandom<T>(array: T[]): T {
   if (!array || array.length === 0) {
     // Provide a fallback or throw an error if a list is unexpectedly empty
     // console.warn("Attempted to pick from an empty array!");
-    return "" as any; // Or handle more gracefully
+    return undefined as T;
   }
   return array[Math.floor(Math.random() * array.length)];
 }

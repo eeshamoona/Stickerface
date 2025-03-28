@@ -26,7 +26,7 @@ export default function PerfectDayToRememberSticker({
   // --- Constants ---
   const SHOW_SEQUENCE_TIME = 3000;
   const COUNTDOWN_INTERVAL = 50;
-  const SUCCESS_DELAY = 1800;
+  const SUCCESS_DELAY = 2000;
 
   // --- Effects ---
 
@@ -88,9 +88,9 @@ export default function PerfectDayToRememberSticker({
     // --- Check for incorrect tap ---
     if (id !== sequence[currentInputIndex]) {
       const failMessages = [
-        "Oops! That wasn't the next step.",
+        "Not what I had in mind but still a great time!",
         "Not quite! Let's see where things differed.",
-        "Almost, but something else came next!",
+        "Almost, but you forgot something!",
       ];
       setFeedback({
         message: failMessages[Math.floor(Math.random() * failMessages.length)],
@@ -133,8 +133,13 @@ export default function PerfectDayToRememberSticker({
 
   const resetGame = () => {
     setRound(1);
-    // generateNewSequence is called via useEffect hook when round changes
-    // failureIndex is reset within generateNewSequence
+    setCountdownProgress(100);
+    setGameState("waiting");
+    setSequence([]);
+    setUserInput([]);
+    setFeedback(null);
+    setFailureIndex(null);
+    generateNewSequence();
   };
 
   const getActivityById = (id: string) => {
@@ -245,20 +250,30 @@ export default function PerfectDayToRememberSticker({
         </h1>
       )}
       {/* Score Display */}
-      {gameState !== "userTurn" && !feedback && (
-        <div className="w-full max-w-md mb-4 flex items-center justify-center gap-6 text-sm text-zinc-700">
+      <div className="flex flex-row items-center justify-center gap-6 transition-opacity duration-300 ease-in-out">
+        {gameState !== "userTurn" && !feedback && (
           <div className="flex items-baseline space-x-1.5">
             <span className="font-medium">Round</span>
             <span className="text-lg font-semibold text-zinc-900">{round}</span>
           </div>
+        )}
+        <Image
+          src={character.imageSrc}
+          alt={character.name}
+          width={100} // Slightly smaller? Adjust as needed
+          height={100}
+          priority={gameState === "waiting"} // Only prioritize if visible initially
+        />
+
+        {gameState !== "userTurn" && !feedback && (
           <div className="flex items-baseline space-x-1.5">
             <span className="font-medium">High Score</span>
             <span className="text-lg font-semibold text-zinc-900">
               {highScore}
             </span>
           </div>
-        </div>
-      )}
+        )}
+      </div>
       {/* Main Game Card */}
       <div
         className="w-full max-w-sm rounded-2xl p-6 md:p-8 shadow-lg bg-white text-center text-zinc-800 overflow-y-auto"
@@ -271,20 +286,26 @@ export default function PerfectDayToRememberSticker({
         {/* State: Waiting to Start */}
         {gameState === "waiting" && !feedback && (
           <div className="text-base italic mb-6 text-zinc-600 px-4">
-            {" "}
-            &quot;Let me show you my perfect day... Think you can remember it
-            all?&quot;{" "}
+            Let me show you my perfect day... Think you can remember it all?
           </div>
         )}
 
         {/* State: Success Feedback */}
         {gameState === "success" && feedback && (
-          <div className="mb-6">
-            <p className="text-lg font-semibold mb-2 text-green-600">
+          <div className="transition-all duration-300 ease-out space-y-4 opacity-100 scale-100">
+            <p className="text-xl font-semibold mb-2 text-green-600">
               {feedback.message}
             </p>
-            <p className="text-sm text-zinc-600 mt-1">
-              Nice! Getting ready for round {round + 1}...
+            {/* Optionally show the sequence again briefly */}
+            <div className="flex flex-wrap justify-center gap-2 opacity-80">
+              {sequence.map((id, index) =>
+                renderSequenceItem(id, index, "user-correct")
+              )}
+            </div>
+            <p className="text-sm text-zinc-500 mt-1 animate-pulse">
+              {" "}
+              {/* Subtle pulse for wait time */}
+              Awesome! Getting ready for round {round + 1}...
             </p>
           </div>
         )}
@@ -380,7 +401,7 @@ export default function PerfectDayToRememberSticker({
             {/* User Input Display with Highlight */}
             <div className="mb-5">
               <p className="text-sm font-semibold text-zinc-600 mb-2">
-                Your Input:
+                Your Sequence:
               </p>
               <div className="flex flex-wrap justify-center gap-2">
                 {sequence.map((id, index) => {
@@ -517,17 +538,6 @@ export default function PerfectDayToRememberSticker({
         </div>
       </div>{" "}
       {/* End Game Card */}
-      {/* Character Image */}
-      <div className="mt-4 mb-2 flex flex-col items-center">
-        <Image
-          src={character.imageSrc}
-          alt={character.name}
-          width={140}
-          height={140}
-          className="w-28 h-28 md:w-32 md:h-32 drop-shadow-md"
-          priority
-        />
-      </div>
     </div>
   );
 }
