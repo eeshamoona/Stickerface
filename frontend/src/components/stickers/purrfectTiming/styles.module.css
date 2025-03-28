@@ -1,0 +1,400 @@
+/* PurrfectTiming Styles */
+
+/* Color variables defined in a CSS module compatible way */
+.container {
+  /* Cat colors */
+  --cat-orange: #f9a825;
+  --cat-black: #333;
+  --bed-purple: #a884f3;
+  --blanket-pink: #e8a0e8;
+  --paw-pink: #d81b60;
+  --plant-green: #4caf50;
+  --plant-pot-red: #e53935;
+  --fish-blue: #29b6f6;
+
+  /* UI colors */
+  --bg-grey: #f4effb;
+  --card-bg: #fffbfe;
+  --text-dark: #3f3d56;
+  --text-light: #6f6d84;
+  --score-highlight: #7e57c2;
+  --feedback-bg: #e8e0f4;
+  --success-green: #66bb6a;
+  --fail-red: #ef5350;
+}
+
+/* Additional classes for petting text animation */
+.pettingTextContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.pettingLetter {
+  display: inline-block;
+  animation: wave 1.5s ease-in-out infinite;
+  margin: 0 1px;
+  color: var(--paw-pink);
+  font-weight: 600;
+}
+
+.pettingLetter:nth-child(3n) {
+  color: var(--cat-orange);
+}
+
+.pettingLetter:nth-child(3n + 1) {
+  color: var(--plant-green);
+}
+
+.pettingLetter:nth-child(3n + 2) {
+  color: var(--fish-blue);
+}
+
+/* Animations */
+@keyframes breathing {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-1.5px) scale(1.005);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes boltAnimation {
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  30% {
+    transform: translateX(-15px) scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(150px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+@keyframes textPulse {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(216, 27, 96, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 25px rgba(216, 27, 96, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(216, 27, 96, 0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes wave {
+  0%,
+  60%,
+  100% {
+    transform: initial;
+  }
+  30% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes boltAnimation {
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  30% {
+    transform: translateX(-15px) scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(150px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+@keyframes textPulse {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Container & Layout */
+.container {
+  font-family: "Quicksand", sans-serif;
+  position: relative;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.gameTitle {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0.5rem 0 1rem 0;
+  order: 0;
+  flex-shrink: 0;
+}
+
+/* Feedback Area (Order 1) */
+.feedbackArea {
+  order: 1;
+  min-height: 3.5rem;
+  margin: 0.5rem 0 0.8rem 0;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.feedbackTextBase {
+  margin: 0 3.2rem;
+  padding: 0 0.2rem;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  transition: opacity 0.5s ease-in-out;
+  line-height: 1.5;
+}
+
+.successFeedback {
+  color: var(--success-green) !important;
+  font-weight: 600;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.failureFeedback {
+  color: var(--fail-red) !important;
+  font-weight: 600;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.resultTime {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-top: 0.4rem;
+  font-weight: 400;
+}
+
+/* Game Interaction Area (Order 2) */
+.gameArea {
+  order: 2;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-width: 360px;
+  margin: 0 auto 1rem auto;
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  background-color: #f0eafc;
+}
+.stickerSceneBg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 0;
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+
+.placeholderText {
+  color: #967bb6;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 1rem;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.stickerCatContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.catBase {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  animation: breathing 4s ease-in-out infinite alternate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.catPurring {
+  animation: breathing 4s ease-in-out infinite alternate;
+}
+
+.catAnnoyed {
+  animation: none;
+}
+
+.catBolting {
+  animation: boltAnimation 0.5s ease-out forwards;
+}
+
+.catPlaceholderDiv {
+  width: 60%;
+  height: 60%;
+  background: #eee;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 0.7rem;
+  color: #555;
+  border: 1px dashed #ccc;
+}
+
+.pettingIndicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(40px, 15vw, 60px);
+  height: clamp(40px, 15vw, 60px);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulse 1.8s infinite cubic-bezier(0.66, 0, 0, 1);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Action Area (Order 3) */
+.actionArea {
+  order: 3;
+  height: 3.2rem;
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.button {
+  padding: 0.7rem 1.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  border-radius: 20px;
+  background-color: var(--plant-green);
+  color: white;
+  transition: background-color 0.2s ease, transform 0.15s ease,
+    box-shadow 0.2s ease;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  letter-spacing: 0.5px;
+}
+
+.button:hover,
+.retryButton:hover {
+  background-color: #3bad7a;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+}
+
+.button:active,
+.retryButton:active {
+  background-color: #2a8c62;
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.idleHint {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  font-style: italic;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Score Footer Area (Order 4) */
+.scoreFooterArea {
+  order: 4;
+  width: 100%;
+  padding: 0.8rem 0.5rem 0.5rem 0.5rem;
+  margin-top: 1rem;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+.scoreItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.scoreLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-light);
+  margin-bottom: 0.1rem;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+}
+
+.scoreIcon {
+  margin-right: 0.25rem;
+}
+
+.scoreValue {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.verticalDivider {
+  width: 1px;
+  height: 100%;
+  background-color: rgb(238, 238, 238);
+}

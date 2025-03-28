@@ -88,6 +88,15 @@ export const stickers: Sticker[] = [
     imageSrc: "/images/button.svg",
     animation: "pulse",
   },
+  {
+    id: "purrfect-timing",
+    name: "Purrfect Timing",
+    description: "Pet the cat to win the game",
+    color: "#FF69B4",
+    type: "purrfect-timing",
+    imageSrc: "/images/purrfect-timing.svg",
+    animation: "bounce",
+  },
 ];
 
 export const getSticker = (id: string): Sticker | undefined => {

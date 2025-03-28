@@ -14,7 +14,8 @@ export interface Sticker {
     | "art"
     | "spell"
     | "perfect-day"
-    | "button";
+    | "button"
+    | "purrfect-timing";
   imageSrc: string;
   animation?: "bounce" | "pulse" | "wiggle" | "spin" | "float";
 }

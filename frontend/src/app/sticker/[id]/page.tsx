@@ -12,6 +12,7 @@ import FortuneSticker from "../../../components/stickers/FortuneSticker";
 import PerfectDayToRememberSticker from "../../../components/stickers/PerfectDayToRememberSticker";
 import PetSticker from "../../../components/stickers/PetSticker";
 import SpellSticker from "../../../components/stickers/SpellSticker";
+import PurrfectTiming from "../../../components/stickers/purrfectTiming";
 
 export default function StickerPage() {
   const router = useRouter();
@@ -51,6 +52,8 @@ export default function StickerPage() {
       case "music":
       case "game":
       case "art":
+      case "purrfect-timing":
+        return <PurrfectTiming />;
       case "perfect-day":
         return <PerfectDayToRememberSticker character={character} />;
       case "button":
