@@ -50,7 +50,7 @@ export const CatDisplay = ({ catState }: { catState: CatState }) => {
   }
 
   // Add catPurring animation class during petting phase
-  const animationClass = catState === "purring" ? styles.catPurring : "";
+  const animationClass = catState === "sleeping" ? styles.catPurring : "";
 
   return (
     <div className={`${styles.catBase} ${animationClass}`}>
