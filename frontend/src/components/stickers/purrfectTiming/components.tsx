@@ -1,13 +1,15 @@
 import styles from "./styles.module.css";
 import { CatState } from "./types";
+import Image from "next/image";
 
 /** Placeholder for the background scene SVG (bed, plant, toy, etc.). */
 export const StickerSceneBackground = () => (
   <div className={styles.stickerSceneBg}>
-    <img
+    <Image
       src="/images/purrfect/SceneBackground.svg"
       alt="Cat bedroom scene background"
-      style={{ width: "100%", height: "100%", objectFit: "contain" }}
+      fill
+      style={{ objectFit: "contain" }}
     />
   </div>
 );
@@ -54,12 +56,11 @@ export const CatDisplay = ({ catState }: { catState: CatState }) => {
 
   return (
     <div className={`${styles.catBase} ${animationClass}`}>
-      <img
+      <Image
         src="/images/purrfect/SleepingCat.svg"
         alt="Sleeping cat"
+        fill
         style={{
-          width: "100%",
-          height: "100%",
           objectFit: "scale-down",
         }}
       />

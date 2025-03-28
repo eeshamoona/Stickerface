@@ -37,7 +37,7 @@ export const calculateRoundScore = (elapsedMs: number): GameResult => {
     return { timeMs: elapsedMs, score: 0, rank: "Too Short!" }; // Should not be reached if logic is correct
 
   const diff = TARGET_TIME_MS - elapsedMs;
-  let baseScore = Math.floor(elapsedMs); // Base points = ms held
+  const baseScore = Math.floor(elapsedMs); // Base points = ms held
   let bonus = 0;
   let rank = "";
 

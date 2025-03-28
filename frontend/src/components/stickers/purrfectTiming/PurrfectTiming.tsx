@@ -35,7 +35,8 @@ const PurrfectTiming: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>("idle");
   const [catState, setCatState] = useState<CatState>("sleeping");
   const [startTime, setStartTime] = useState<number | null>(null); // Timestamp when petting started
-  const [elapsedTime, setElapsedTime] = useState<number>(0); // Internal timer value during petting
+  // Using setElapsedTime but not using the state value directly
+  const [, setElapsedTime] = useState<number>(0); // Internal timer value during petting
   const [lastRoundResult, setLastRoundResult] = useState<GameResult | null>(
     null
   ); // Result of the single last successful round

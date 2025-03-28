@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getCharacterConfig, getSticker } from "../../../lib/data";
 
@@ -14,7 +14,7 @@ import SpellSticker from "../../../components/stickers/SpellSticker";
 import PurrfectTiming from "../../../components/stickers/purrfectTiming";
 
 export default function StickerPage() {
-  const router = useRouter();
+  // const router = useRouter(); // Removed unused variable
   const searchParams = useSearchParams();
   const slug = searchParams.get("friend");
   const character = getCharacterConfig(slug ?? "capybara");
