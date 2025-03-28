@@ -157,12 +157,13 @@ export default function PerfectDayToRememberSticker({
       | "user-correct"
       | "user-incorrect"
       | "placeholder"
+      | "original"
       | "missed"
   ) => {
     const activity = id ? getActivityById(id) : null;
     let bgColor = "bg-gray-100";
     let ringColor = "ring-gray-200";
-    let iconSize = "w-9 h-9"; // Default size
+    let iconSize = "w-10 h-10"; // Default size
     let opacity = "opacity-100";
     let content: React.ReactNode = (
       <div
@@ -189,7 +190,7 @@ export default function PerfectDayToRememberSticker({
       case "correct": // The correct sequence display
         bgColor = "bg-blue-50";
         ringColor = "ring-blue-200";
-        iconSize = "w-10 h-10"; // Slightly larger for emphasis
+        iconSize = "w-12 h-12"; // Slightly larger for emphasis
         if (activity) {
           // Re-render with correct size
           content = (
@@ -212,6 +213,9 @@ export default function PerfectDayToRememberSticker({
         bgColor = "bg-red-50";
         ringColor = "ring-red-300";
         // Optionally add more emphasis like a thicker ring or icon
+        break;
+      case "original": // The original sequence display
+        bgColor = "bg-blue-50";
         break;
       case "missed": // Correct items the user didn't get to input
         bgColor = "bg-orange-50"; // Indicate these were missed
@@ -276,17 +280,30 @@ export default function PerfectDayToRememberSticker({
       </div>
       {/* Main Game Card */}
       <div
-        className="w-full max-w-sm rounded-2xl p-6 md:p-8 shadow-lg bg-white text-center text-zinc-800 overflow-y-auto"
+        className="w-full max-w-sm rounded-2xl p-6 md:p-8 bg-white text-center text-zinc-800 overflow-y-auto border ring-gray-200"
         style={{
           fontFamily:
             '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
           maxHeight: "calc(100vh - 280px)",
         }}
       >
-        {/* State: Waiting to Start */}
+        {/* State: Waiting to Start - with random Messages */}
         {gameState === "waiting" && !feedback && (
-          <div className="text-base italic mb-6 text-zinc-600 px-4">
-            Let me show you my perfect day... Think you can remember it all?
+          <div className="text-base mb-6 text-gray-600 px-4">
+            {(() => {
+              const waitingMessages = [
+                `Let me show you my perfect day... Think you can remember it all?`,
+                `I've got the BEST day planned! Can you keep up with my schedule?`,
+                `Oh I just found out what makes my day perfect! Ready to see?`,
+                `${character.name} here! Can you remember my perfect day?`,
+                `I'm thinking about my ideal day... Pay attention to what I love!`,
+                `This is how I spend a perfect day. How good is your memory?`,
+                `My perfect day has ${round} special moments. Can you remember them all?`,
+              ];
+              return waitingMessages[
+                Math.floor(Math.random() * waitingMessages.length)
+              ];
+            })()}
           </div>
         )}
 
@@ -393,7 +410,7 @@ export default function PerfectDayToRememberSticker({
               </p>
               <div className="flex flex-wrap justify-center gap-2">
                 {sequence.map((id, index) =>
-                  renderSequenceItem(id, index, "correct")
+                  renderSequenceItem(id, index, "original")
                 )}
               </div>
             </div>
@@ -451,7 +468,7 @@ export default function PerfectDayToRememberSticker({
           {gameState === "waiting" && (
             <button
               onClick={showSequence}
-              className="px-6 py-2.5 bg-zinc-900 text-white rounded-full hover:bg-zinc-700 transition-colors font-semibold text-base focus:outline-none shadow-sm"
+              className="px-6 py-2.5 bg-zinc-900 text-white rounded-full hover:bg-zinc-700 transition-colors font-semibold text-base"
             >
               {" "}
               ▶ Play Round {round}{" "}
@@ -460,7 +477,7 @@ export default function PerfectDayToRememberSticker({
           {/* State: Showing Sequence Indicator */}
           {gameState === "showing" && (
             <div
-              className="px-5 py-2.5 bg-amber-500 text-white rounded-full font-medium text-sm flex items-center relative overflow-hidden shadow-sm"
+              className="px-5 py-2.5 bg-amber-500 text-white rounded-full font-medium text-sm flex items-center relative overflow-hidden"
               role="progressbar"
               aria-valuenow={100 - countdownProgress}
               aria-valuemin={0}
@@ -494,7 +511,7 @@ export default function PerfectDayToRememberSticker({
           {/* State: User Turn Progress Indicator */}
           {gameState === "userTurn" && (
             <div
-              className="px-5 py-2.5 bg-green-600 text-white rounded-full font-medium text-sm flex items-center shadow-sm"
+              className="px-5 py-2.5 bg-green-600 text-white rounded-full font-medium text-sm flex items-center"
               role="status"
             >
               {" "}
@@ -517,7 +534,7 @@ export default function PerfectDayToRememberSticker({
           {gameState === "failed" && (
             <button
               onClick={resetGame}
-              className="px-6 py-2.5 bg-zinc-900 text-white rounded-full hover:bg-zinc-700 transition-colors font-semibold text-base flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-900 shadow-sm"
+              className="px-6 py-2.5 bg-zinc-900 text-white rounded-full hover:bg-zinc-700 transition-colors font-semibold text-base flex items-center"
             >
               {" "}
               <svg
