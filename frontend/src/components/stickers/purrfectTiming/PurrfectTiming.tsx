@@ -346,7 +346,7 @@ const PurrfectTiming: React.FC = () => {
       >
         {/* Layer 2: Animated Cat (User SVG) */}
         <div className={styles.stickerCatContainer}>
-          <CatDisplay catState={catState} />
+          <CatDisplay catState={catState} gameState={gameState} />
         </div>
         {/* Layer 3: Petting Pulse Indicator */}
         {isPetting && <div className={styles.pettingIndicator} />}
