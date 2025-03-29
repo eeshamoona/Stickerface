@@ -1,97 +1,106 @@
-/* src/components/ImageComparisonSlider.module.css */
+/* src/components/photos/ImageComparisonSlider.module.css */
 
 .comparisonContainer {
-    position: relative; /* Required for absolute positioning of children and Next/Image fill */
-    overflow: hidden;   /* Prevents handle/image edges from showing outside */
-    cursor: grab;       /* Indicate draggability */
-    user-select: none;  /* Prevent text selection during drag */
-    -webkit-user-select: none; /* Safari */
-    -moz-user-select: none; /* Firefox */
-    -ms-user-select: none; /* IE */
-    touch-action: pan-y; /* Allow vertical scroll on touch devices */
-  }
-  
-  .comparisonContainer:active {
-    cursor: grabbing;
-  }
-  
-  /* Wrapper for each image */
-  .imageWrapper {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden; /* Ensure clip-path works cleanly */
-  }
-  
-  /* Specifically target the top ('before') image wrapper for clipping */
-  .imageBeforeWrapper {
-    z-index: 1; /* Ensure it's above the 'after' image */
-    /* clip-path is applied inline via style prop based on sliderPosition */
-  }
-  
-  /* Style for the draggable handle */
-  .sliderHandle {
-    position: absolute;
-    top: 0;
-    bottom: 0; /* Stretch full height */
-    width: 4px; /* Width of the draggable area */
-    transform: translateX(-50%); /* Center the handle visually on its 'left' position */
-    cursor: grab;
-    z-index: 2; /* Above both images */
-    display: flex;
-    align-items: center; /* Vertically center the grip */
-    justify-content: center; /* Horizontally center grip within handle width */
-    touch-action: none; /* Prevent scrolling when dragging handle */
-  }
-  
-  .sliderHandle:active {
-      cursor: grabbing;
-  }
-  
-  .sliderHandleLine {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 50%; /* Center line within handle */
-      width: 2px; /* Visible line thickness */
-      background-color: rgba(255, 255, 255, 0.8);
-      box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-      transform: translateX(-50%); /* Center the line pixel */
-      pointer-events: none; /* Don't let line interfere with dragging */
-  }
-  
-  .sliderHandleGrip {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background-color: rgba(255, 255, 255, 0.9);
-      box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: auto; /* Grip should be interactive */
-  }
-  
-  .gripIcon {
-      width: 24px;
-      height: 24px;
-      color: #333;
-      pointer-events: none; /* Icon itself shouldn't interfere */
-  }
-  
-  
-  /* Optional: Visually hidden slider for accessibility */
-  .sliderInput {
-    position: absolute;
-    left: -9999px; /* Hide visually */
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-  }
-  
-  /* Ensure Next/Image itself doesn't add extra styles we don't want */
-  .imageWrapper > span {
-      height: 100% !important; /* Override potential Next/Image inline styles if needed */
-  }
+  position: relative; /* Required for absolute positioning of children and Next/Image fill */
+  overflow: hidden; /* Prevents handle/image edges from showing outside */
+  cursor: grab; /* Indicate draggability */
+  user-select: none; /* Prevent text selection during drag */
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE */
+  touch-action: pan-y; /* Allow vertical scroll on touch devices */
+}
+
+.comparisonContainer:active {
+  cursor: grabbing;
+}
+
+/* Wrapper for each image */
+.imageWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Ensure clip-path works cleanly */
+  display: block; /* Ensure display is block */
+  min-height: 300px; /* Minimum height to ensure visibility */
+}
+
+/* Specifically target the top ('before') image wrapper for clipping */
+.imageBeforeWrapper {
+  z-index: 1; /* Ensure it's above the 'after' image */
+  /* clip-path is applied inline via style prop based on sliderPosition */
+}
+
+/* Style for the draggable handle */
+.sliderHandle {
+  position: absolute;
+  top: 0;
+  bottom: 0; /* Stretch full height */
+  width: 4px; /* Width of the draggable area */
+  transform: translateX(
+    -50%
+  ); /* Center the handle visually on its 'left' position */
+  cursor: grab;
+  z-index: 2; /* Above both images */
+  display: flex;
+  align-items: center; /* Vertically center the grip */
+  justify-content: center; /* Horizontally center grip within handle width */
+  touch-action: none; /* Prevent scrolling when dragging handle */
+}
+
+.sliderHandle:active {
+  cursor: grabbing;
+}
+
+.sliderHandleLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%; /* Center line within handle */
+  width: 3px; /* Increased thickness for better visibility */
+  background-color: rgba(
+    255,
+    255,
+    255,
+    1
+  ); /* Full opacity for better visibility */
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.7); /* Stronger shadow */
+  transform: translateX(-50%); /* Center the line pixel */
+  pointer-events: none; /* Don't let line interfere with dragging */
+}
+
+.sliderHandleGrip {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 1);
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto; /* Grip should be interactive */
+  border: 2px solid #4299e1; /* Add blue border for better visibility */
+}
+
+.gripIcon {
+  width: 24px;
+  height: 24px;
+  color: #333;
+  pointer-events: none; /* Icon itself shouldn't interfere */
+}
+
+/* Optional: Visually hidden slider for accessibility */
+.sliderInput {
+  position: absolute;
+  left: -9999px; /* Hide visually */
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+/* Ensure Next/Image itself doesn't add extra styles we don't want */
+.imageWrapper > span {
+  height: 100% !important; /* Override potential Next/Image inline styles if needed */
+}

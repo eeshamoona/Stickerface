@@ -22,6 +22,13 @@ const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
   containerHeight, // Defaults handled by aspectRatio or CSS
   aspectRatio = "16 / 9", // Default aspect ratio
 }) => {
+  // Debug logs to check if props are being passed correctly
+  console.log("ImageComparisonSlider props:", {
+    imageBefore,
+    imageAfter,
+    aspectRatio,
+  });
+
   const [sliderPosition, setSliderPosition] = useState<number>(50); // Initial position (percentage)
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -83,6 +90,17 @@ const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
     document.addEventListener("touchmove", handleTouchMove, { passive: true }); // Consider passive for performance
     document.addEventListener("touchend", handleTouchEnd);
 
+    // Debug container dimensions
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      console.log("Container dimensions:", {
+        width: rect.width,
+        height: rect.height,
+        top: rect.top,
+        left: rect.left,
+      });
+    }
+
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
@@ -95,10 +113,11 @@ const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
   const containerDynamicStyle: React.CSSProperties = {
     width: containerWidth,
     aspectRatio: containerHeight ? undefined : aspectRatio, // Only apply aspect ratio if height isn't explicitly set
-    height: containerHeight,
+    height: containerHeight || "400px", // Add a default height to ensure visibility
     position: "relative", // Crucial for Next/Image fill and absolute positioning
     overflow: "hidden", // Prevent handle overflow
     cursor: isDragging ? "grabbing" : "grab",
+    border: "1px solid #e0e0e0", // Add border to make the container visible
   };
 
   return (
@@ -128,6 +147,7 @@ const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
         className={`${styles.imageWrapper} ${styles.imageBeforeWrapper}`}
         style={{
           clipPath: `inset(0 ${100 - sliderPosition}% 0 0)`, // Clip from the right
+          zIndex: 2, // Ensure it's above the after image
         }}
       >
         <Image
