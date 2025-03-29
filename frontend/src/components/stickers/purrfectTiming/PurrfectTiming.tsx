@@ -238,8 +238,6 @@ const PurrfectTiming: React.FC = () => {
           {currentStreak > 0 ? `${currentStreak}x` : "-"}
         </span>
       </div>
-      {/* Vertical Divider */}
-      <div className={styles.verticalDivider} />
       <div className={styles.scoreItem}>
         <span className={styles.scoreLabel}>
           <BiTrophy className={styles.scoreIcon} /> Best:

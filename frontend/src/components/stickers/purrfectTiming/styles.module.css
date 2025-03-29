@@ -151,7 +151,6 @@
   text-align: center;
   display: flex;
   height: 100%;
-  padding: 2rem;
   flex-direction: column;
 }
 
@@ -177,7 +176,7 @@
 }
 
 .feedbackTextBase {
-  margin: 0 3.2rem;
+  margin: 0;
   padding: 0 0.2rem;
   font-size: 1.05rem;
   font-weight: 500;
@@ -219,7 +218,6 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
-  max-width: 360px;
   margin: 0 auto 1rem auto;
   border-radius: 18px;
   overflow: hidden;
@@ -264,6 +262,17 @@
   transition: opacity 0.3s ease, transform 0.3s ease;
   align-items: center;
   justify-content: center;
+
+  -webkit-touch-callout: none;
+
+  /* Prevent text selection */
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Standard */
+
+  /* Optional: Make it clear it's interactive */
+  cursor: pointer;
 }
 
 .catPurring {
@@ -354,8 +363,7 @@
 .scoreFooterArea {
   order: 4;
   width: 100%;
-  padding: 0.8rem 0.5rem 0.5rem 0.5rem;
-  margin-top: 1rem;
+  padding-top: 1rem;
   border-top: 1px solid #eee;
   display: flex;
   justify-content: space-around;
