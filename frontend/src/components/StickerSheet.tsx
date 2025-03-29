@@ -1,6 +1,4 @@
-// src/components/StickerSheet.tsx
-
-import { stickers } from "../lib/data";
+import { stickers } from "../lib/sticker";
 import StickerComponent from "./Sticker";
 
 export default function StickerSheet() {

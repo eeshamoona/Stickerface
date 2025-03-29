@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { FaArrowLeft, FaExclamationTriangle } from "react-icons/fa"; // Using react-icons
 
 import ImageComparisonSlider from "../../../components/photos/ImageComparisonSlider";
-import { getPhoto } from "../../../lib/data";
+import { getPhoto } from "../../../lib/photos";
 import type { Photo } from "../../../types";
 
 // --- Helper: Enhanced Error Message Component ---
@@ -90,8 +90,8 @@ export default function PhotoPage() {
         />
         <h1 className="text-xl font-semibold text-gray-800">Photo Not Found</h1>
         <p className="max-w-md text-sm text-gray-600">
-          Sorry, the photo you were looking for doesn't seem to exist or may
-          have been moved.
+          Sorry, the photo you were looking for doesn&apos;t seem to exist or
+          may have been moved.
         </p>
         <Link
           href="/photos"

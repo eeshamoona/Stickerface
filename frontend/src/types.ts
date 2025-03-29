@@ -13,7 +13,6 @@ export interface Sticker {
     | "button"
     | "purrfect-timing";
   imageSrc: string;
-  animation?: "bounce" | "pulse" | "wiggle" | "spin" | "float";
 }
 
 export interface ArtStyle {

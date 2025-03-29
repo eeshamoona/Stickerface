@@ -4,7 +4,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { animations } from "../lib/animations";
 import type { Sticker } from "../types";
 
 interface StickerProps {
@@ -28,7 +27,6 @@ export default function StickerComponent({
     backgroundColor: sticker.color,
     transform: pressed ? "scale(0.95)" : "scale(1)",
     transition: "transform 0.2s ease-out",
-    ...(sticker.animation && animations[sticker.animation]),
   };
 
   const content = (

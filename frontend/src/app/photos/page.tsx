@@ -3,7 +3,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { photos } from "../../lib/data";
+import { photos } from "../../lib/photos";
 
 export default function PhotosPage() {
   return (

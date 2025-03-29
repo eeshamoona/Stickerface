@@ -49,8 +49,8 @@ const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
   };
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault(); // Prevent text selection/image dragging
     setIsDragging(true);
-    // No preventDefault here unless needed to stop scrolling maybe
   };
 
   const handleMouseUp = useCallback(() => {
