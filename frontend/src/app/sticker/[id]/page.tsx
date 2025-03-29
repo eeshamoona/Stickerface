@@ -61,7 +61,7 @@ export default function StickerPage() {
       className="sticker-page flex flex-col items-center h-screen p-4"
       style={{ backgroundColor: `${sticker.color}80` }}
     >
-      <div className="sticker-content-container w-full max-w-md flex-grow flex flex-col justify-center p-4 bg-white rounded-2xl shadow-lg">
+      <div className="sticker-content-container w-full max-w-md h-full flex-grow flex flex-col justify-center p-4 bg-white rounded-2xl shadow-lg">
         {renderStickerContent()}
       </div>
     </div>
