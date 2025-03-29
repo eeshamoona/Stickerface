@@ -51,7 +51,7 @@ export const photos: Photo[] = [
           name: "Studio Ghibli",
           description: "Inspired by Studio Ghibli's animation style",
           imagePath:
-            "/images/photos/art-styles/pulp-fiction-bananas/studioghibli.png",
+            "/images/photos/art-styles/pulp-fiction-bananas/studioghibli2.jpg",
         },
         {
           id: "pixar",
