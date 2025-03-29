@@ -263,6 +263,19 @@
   transition: opacity 0.3s ease, transform 0.3s ease;
   align-items: center;
   justify-content: center;
+  margin-right: 3rem;
+  margin-top: 4.4rem;
+
+  -webkit-touch-callout: none;
+
+  /* Prevent text selection */
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Standard */
+
+  /* Optional: Make it clear it's interactive */
+  cursor: pointer;
 }
 
 .catPurring {
