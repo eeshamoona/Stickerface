@@ -4,7 +4,8 @@
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getCharacterConfig, getSticker } from "../../../lib/data";
+import { getCharacterConfig } from "../../../lib/character";
+import { getSticker } from "../../../lib/sticker";
 
 // Import individual sticker components
 import DoNotPressButton from "../../../components/stickers/DoNotPressButton";
