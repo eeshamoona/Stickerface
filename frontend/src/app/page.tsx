@@ -19,29 +19,12 @@ export default function Home() {
   const location = "Chicago, IL"; // Added based on context
 
   return (
-    <div className={`min-h-screen bg-white text-gray-700 ${nunito.className}`}>
+    <div>
       {" "}
       {/* Slightly darker base text */}
-      {/* --- Navigation --- */}
-      <header className="sticky top-0 bg-white/90 backdrop-blur-md z-20 border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Reduced header height */}
-          <div className="h-14 flex items-center justify-between">
-            <div className="flex-shrink-0">
-              <Link
-                href="/"
-                // Reduced font size, adjusted tracking hover
-                className="text-lg font-bold text-gray-900 hover:text-indigo-700 transition-all duration-300 ease-in-out hover:tracking-normal"
-              >
-                Stickerface
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
       {/* --- Main Content --- */}
-      <main>
-        {/* --- Hero Section (Split Layout) --- */}
+      <div className={`min-h-screen bg-white text-gray-700 ${nunito.className}`}>
+      {/* --- Hero Section (Split Layout) --- */}
         <section className="relative bg-gradient-to-br from-indigo-50 via-purple-50 to-white overflow-hidden">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             {/* Adjusted padding */}
@@ -242,9 +225,9 @@ export default function Home() {
             </div>
           </div>
         </section>
-      </main>
+      </div>
       {/* --- Footer --- */}
-      <footer className="bg-gray-800 text-gray-400">
+      <footer className=" text-gray-400">
         {" "}
         {/* Darker footer for contrast */}
         <div className="max-w-6xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
