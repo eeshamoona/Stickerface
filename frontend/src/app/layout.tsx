@@ -1,13 +1,7 @@
 import { Analytics } from "@vercel/analytics/react";
-import { Nunito, Quicksand } from "next/font/google";
+import { Nunito } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
-
-const quicksand = Quicksand({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  variable: "--font-quicksand",
-});
 
 const nunito = Nunito({ subsets: ["latin"], weight: ["500", "600", "700"] });
 export const metadata = {
