@@ -1,9 +1,7 @@
-import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react"; // Added useCallback
-// Import EVERYTHING from the content file now
-import * as ButtonContent from "@/lib/do-not-push-button";
-// Import animations
 import { animations, buttonKeyframes } from "@/lib/animations";
+import * as ButtonContent from "@/lib/do-not-push-button";
+import Image from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 // Define image paths (as before)
 const DoNotPushDown = "/images/DoNotPush-Down.svg";
@@ -243,9 +241,11 @@ export default function DoNotPressButton() {
 
       {/* Container for Button + Message Area - using flex layout */}
       <div className="flex flex-col items-center justify-center w-full h-full">
-
         {/* Button container with space for jump - using relative positioning */}
-        <div className="relative flex items-end justify-center" style={{ height: "min(300px, 40vh)" }}>
+        <div
+          className="relative flex items-end justify-center"
+          style={{ height: "min(300px, 40vh)" }}
+        >
           <div
             className={`transform transition-transform duration-100 ease-out ${
               isShaking ? "shake" : ""

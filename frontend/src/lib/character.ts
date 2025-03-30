@@ -1,4 +1,3 @@
-import type { Sticker } from "../types";
 export interface CharacterConfig {
   slug: string;
   name: string;
@@ -7,63 +6,10 @@ export interface CharacterConfig {
   imageSrc: string;
 }
 
-export const stickers: Sticker[] = [
-  {
-    id: "fortune-teller",
-    name: "Fortune Teller",
-    description: "Reveals your mysterious future",
-    color: "#F4D03F",
-    type: "fortune",
-    imageSrc: "/images/fortune.svg",
-    animation: "wiggle",
-  },
-  {
-    id: "stress-spell",
-    name: "Stress Relief Spell",
-    description: "Create a magical spell to relieve stress",
-    color: "#8A2BE2",
-    type: "spell",
-    imageSrc: "/images/spell.svg",
-    animation: "pulse",
-  },
-  {
-    id: "perfect-day-game",
-    name: "A Perfect Day to Remember",
-    description: "A memory game about the perfect day",
-    color: "#67CEEE",
-    type: "perfect-day",
-    imageSrc: "/images/perfect-day.svg",
-    animation: "bounce",
-  },
-  {
-    id: "do-not-press-button",
-    name: "Do Not Press Button",
-    description: "A button that you should not press",
-    color: "#DC143C",
-    type: "button",
-    imageSrc: "/images/button.svg",
-    animation: "pulse",
-  },
-  {
-    id: "purrfect-timing",
-    name: "Purrfect Timing",
-    description: "Pet the cat to win the game",
-    color: "#af90ff",
-    type: "purrfect-timing",
-    imageSrc: "/images/purrfect-timing.svg",
-    animation: "bounce",
-  },
-];
-
-export const getSticker = (id: string): Sticker | undefined => {
-  return stickers.find((sticker) => sticker.id === id);
-};
-
 // Define a type for the characters object with an index signature
 interface CharacterDictionary {
   [key: string]: CharacterConfig;
 }
-
 export const getCharacterConfig = (slug: string): CharacterConfig => {
   const characters: CharacterDictionary = {
     capybara: {

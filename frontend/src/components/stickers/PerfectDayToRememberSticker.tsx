@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
-import { CharacterConfig } from "../../lib/data"; // Assuming this path is correct
+import { CharacterConfig } from "../../lib/character";
 
 export default function PerfectDayToRememberSticker({
   character,
