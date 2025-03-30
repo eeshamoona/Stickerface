@@ -127,7 +127,7 @@ export default function Home() {
                 </p>
                 <p className="mt-3 text-base text-gray-600">
                   Imagine tapping a sticker on your laptop to unlock a mini-game
-                  or a unique photo filter – that's the core idea: bridging
+                  or a unique photo filter – that&apos;s the core idea: bridging
                   tactile joy with interactive possibilities.
                 </p>
                 <p className="mt-4 text-xs text-indigo-700 font-medium">
