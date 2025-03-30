@@ -1,5 +1,5 @@
 import { Analytics } from "@vercel/analytics/react";
-import { Quicksand } from "next/font/google";
+import { Nunito, Quicksand } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 
@@ -8,6 +8,8 @@ const quicksand = Quicksand({
   weight: ["500", "600", "700"],
   variable: "--font-quicksand",
 });
+
+const nunito = Nunito({ subsets: ["latin"], weight: ["500", "600", "700"] });
 export const metadata = {
   title: "Stickerface",
   description: "Interactive stickers for your digital space",
@@ -29,7 +31,7 @@ export default function RootLayout({
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Reduced header height */}
             <div
-              className={`h-14 flex items-center justify-between ${quicksand.className}`}
+              className={`h-14 flex items-center justify-between ${nunito.className}`}
             >
               <div className="flex-shrink-0">
                 <Link
