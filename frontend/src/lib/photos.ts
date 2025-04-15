@@ -63,6 +63,40 @@ export const photos: Photo[] = [
     },
     aspectRatio: "4 / 3",
   },
+  {
+    id: "girls-graduation",
+    title: "Girls Graduation",
+    description: "Eesha and Victoria graduating from UIUC",
+    type: "art-styles",
+    date: "2023-05-15",
+    location: "University of Illinois at Urbana-Champaign",
+    color: "#13294B", // UIUC blue
+    images: {
+      original: "/images/photos/art-styles/girls-graduation/original.jpg",
+      artStyles: [
+        {
+          id: "studioghibli",
+          name: "Studio Ghibli",
+          description: "Inspired by Studio Ghibli's animation style",
+          imagePath:
+            "/images/photos/art-styles/girls-graduation/studioghibli.png",
+        },
+        {
+          id: "animated",
+          name: "Animated",
+          description: "Inspired by general animation styles",
+          imagePath: "/images/photos/art-styles/girls-graduation/animated.png",
+        },
+        {
+          id: "funko-pop",
+          name: "Funko Pop",
+          description: "Inspired by Funko Pop's animation style",
+          imagePath: "/images/photos/art-styles/girls-graduation/funkopop.png",
+        },
+      ],
+    },
+    aspectRatio: "1 / 1",
+  },
 ];
 
 export const getPhoto = (id: string): Photo | undefined => {
