@@ -3,81 +3,110 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { photos } from "../../lib/photos";
+import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabase";
+import { getPhotos } from "../../lib/storage";
+import { Photo } from "../../types";
 
 export default function PhotosPage() {
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-8">Photo Gallery</h1>
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [loading, setLoading] = useState(true);
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {photos.map((photo) => (
-            <div key={photo.id} className="group">
-              <Link href={`/photos/${photo.id}`} className="block">
-                <div className="bg-white rounded-xl shadow-md overflow-hidden transition-transform duration-300 group-hover:shadow-lg group-hover:-translate-y-1">
-                  <div
-                    className="relative w-full"
-                    style={{ aspectRatio: photo.aspectRatio || "16 / 9" }}
-                  >
+  useEffect(() => {
+    // Initial fetch
+    getPhotos().then((data) => {
+      setPhotos(data);
+      setLoading(false);
+    });
+
+    // Real-time subscription
+    const channel = supabase
+      .channel("photos-channel")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "photos" },
+        (payload) => {
+          setPhotos((prev) => [payload.new as Photo, ...prev]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-black selection:text-white">
+      {/* Navigation / Header */}
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-5xl font-bold font-serif tracking-tight mb-4">
+            Gallery
+          </h1>
+          <p className="text-gray-500 max-w-lg mx-auto">
+            A collection of moments reimagined through art.
+          </p>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-black"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+            {photos.map((photo) => (
+              <Link
+                key={photo.id}
+                href={`/photos/${photo.slug || photo.id}`}
+                className="group block"
+              >
+                <article className="flex flex-col gap-4">
+                  <div className="relative overflow-hidden rounded-xl bg-gray-100 aspect-[4/3] shadow-sm transition-all duration-500 group-hover:shadow-md">
                     <Image
-                      src={
-                        photo.type === "comparison"
-                          ? photo.images.after!
-                          : photo.type === "gallery"
-                          ? photo.images.gallery![0]
-                          : photo.type === "art-styles"
-                          ? photo.images.original
-                          : photo.images.main!
-                      }
+                      src={photo.images.original}
                       alt={photo.title}
                       fill
-                      style={{ objectFit: "cover" }}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     />
+                    <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/5" />
                   </div>
-                  <div className="p-4">
-                    <h2 className="text-lg font-semibold mb-1 group-hover:text-blue-600">
+
+                  <div className="space-y-1">
+                    <h2 className="text-lg font-bold font-serif leading-snug group-hover:underline decoration-1 underline-offset-4">
                       {photo.title}
                     </h2>
-                    <p className="text-sm text-gray-600 line-clamp-2">
-                      {photo.description}
-                    </p>
-                    <div className="mt-2 flex justify-between text-xs text-gray-500">
+                    <div className="flex items-center text-xs text-gray-400 font-medium uppercase tracking-wider gap-2">
                       <span>{photo.date}</span>
-                      {photo.type === "comparison" && (
-                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                          Before & After
-                        </span>
-                      )}
-                      {photo.type === "art-styles" && (
-                        <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
-                          Art Styles
-                        </span>
+                      {photo.images.artStyles && photo.images.artStyles.length > 0 && (
+                        <>
+                          <span className="w-0.5 h-0.5 rounded-full bg-gray-300"></span>
+                          <span>{photo.images.artStyles.length} Styles</span>
+                        </>
                       )}
                     </div>
                   </div>
-                </div>
+                </article>
               </Link>
+            ))}
+          </div>
+        )}
 
-              {/* Art style quick links */}
-              {photo.type === "art-styles" && photo.images.artStyles && (
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {photo.images.artStyles.map((style) => (
-                    <Link
-                      key={style.id}
-                      href={`/photos/${photo.id}?style=${style.id}`}
-                      className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 transition-colors"
-                    >
-                      {style.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+        {!loading && photos.length === 0 && (
+          <div className="text-center py-20 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+            <p className="text-gray-500 mb-4">No photos found.</p>
+            <Link
+              href="/photos/manage"
+              className="text-black font-medium underline underline-offset-4 hover:text-gray-600"
+            >
+              Create your first photo
+            </Link>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
+
