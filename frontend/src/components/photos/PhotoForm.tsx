@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import ImageComparisonSlider from "@/components/photos/ImageComparisonSlider";
 import imageCompression from "browser-image-compression";
+import { extractFrameFromVideo } from "@/lib/video-utils";
 
 interface PhotoFormProps {
     initialPhoto?: Photo;
@@ -27,7 +28,8 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
 
     const [aspectRatio, setAspectRatio] = useState(initialPhoto?.aspectRatio || "16 / 9");
     const [objectPosition, setObjectPosition] = useState(initialPhoto?.objectPosition || "50% 50%");
-    const [metadata, setMetadata] = useState(initialPhoto?.metadata || { camera: "", lens: "", film: "" });
+    // Metadata removed as per request, but keeping state if we need to re-add later or for DB compatibility
+    const [metadata, setMetadata] = useState(initialPhoto?.metadata || {});
 
     // Set date on client-side only
     useEffect(() => {
@@ -38,11 +40,13 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
 
     // Image Files State
     const [originalImage, setOriginalImage] = useState<File | null>(null);
-    const [artStyles, setArtStyles] = useState<{ name: string; prompt: string; image: File | null }[]>(
+    const [videoFile, setVideoFile] = useState<File | null>(null);
+    const [artStyles, setArtStyles] = useState<{ name: string; prompt: string; image: File | null; objectPosition?: string }[]>(
         initialPhoto?.images.artStyles?.map(style => ({
             name: style.name,
             prompt: style.prompt,
-            image: null // We'll keep existing URLs, only upload if changed
+            image: null,
+            objectPosition: style.objectPosition || "50% 50%"
         })) || []
     );
 
@@ -54,6 +58,7 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
         )
     });
     const [selectedPreviewStyle, setSelectedPreviewStyle] = useState<number>(0);
+    const [alignmentTarget, setAlignmentTarget] = useState<"original" | number>("original");
 
     const handleImageChange = async (
         key: string,
@@ -118,6 +123,23 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
         }
     };
 
+    const handleVideoChange = async (file: File | null) => {
+        if (file) {
+            setVideoFile(file);
+            try {
+                // Extract frame to use as the "Original Image"
+                const frame = await extractFrameFromVideo(file);
+                // Treat this frame as if the user uploaded an image
+                handleImageChange("original", frame, setOriginalImage, true);
+            } catch (error) {
+                console.error("Error extracting frame:", error);
+                setError("Failed to process video. Please try another file.");
+            }
+        } else {
+            setVideoFile(null);
+        }
+    };
+
     const handleArtStyleImageChange = async (index: number, file: File | null) => {
         if (file) {
             const options = {
@@ -146,7 +168,7 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
     };
 
     const handleAddArtStyle = () => {
-        setArtStyles([...artStyles, { name: "", prompt: "", image: null }]);
+        setArtStyles([...artStyles, { name: "", prompt: "", image: null, objectPosition: "50% 50%" }]);
     };
 
     const handleRemoveArtStyle = (index: number) => {
@@ -189,6 +211,14 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
 
             if (!originalUrl) throw new Error("Original image is required");
 
+            // Upload video if present
+            let videoUrl = initialPhoto?.images.video || "";
+            if (videoFile) {
+                const formData = new FormData();
+                formData.append("file", videoFile);
+                videoUrl = await uploadImage(formData);
+            }
+
             // Upload art styles
             const uploadedStyles: ArtStyle[] = [];
             for (let i = 0; i < artStyles.length; i++) {
@@ -210,6 +240,7 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
                         name: style.name,
                         prompt: style.prompt,
                         imagePath: styleUrl,
+                        objectPosition: (style as any).objectPosition || "50% 50%",
                     });
                 }
             }
@@ -223,6 +254,7 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
                 location,
                 images: {
                     original: originalUrl,
+                    video: videoUrl || undefined,
                     artStyles: uploadedStyles
                 },
                 aspectRatio,
@@ -488,85 +520,127 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
                             </div >
                         </section >
 
-                        {/* Alignment & Metadata */}
+                        {/* Alignment */}
                         <section className="space-y-4 pt-4 border-t border-gray-100">
-                            <h2 className="text-sm font-bold text-gray-900">Alignment & Metadata</h2>
+                            <h2 className="text-sm font-bold text-gray-900">Alignment</h2>
 
-                            {/* Alignment Editor */}
-                            <div className="space-y-2">
-                                <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                                    Focal Point ({objectPosition})
-                                </label>
+                            <div className="space-y-3">
+                                <div className="flex gap-2 overflow-x-auto pb-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setAlignmentTarget("original")}
+                                        className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${alignmentTarget === "original"
+                                            ? "bg-black text-white"
+                                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                            }`}
+                                    >
+                                        Original
+                                    </button>
+                                    {artStyles.map((style, idx) => (
+                                        <button
+                                            key={idx}
+                                            type="button"
+                                            onClick={() => setAlignmentTarget(idx)}
+                                            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${alignmentTarget === idx
+                                                ? "bg-black text-white"
+                                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                                }`}
+                                        >
+                                            {style.name || `Style ${idx + 1}`}
+                                        </button>
+                                    ))}
+                                </div>
+
                                 <div className="relative w-full aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200 cursor-crosshair group">
-                                    {previews["original"] ? (
-                                        <>
-                                            <Image
-                                                src={previews["original"]}
-                                                alt="Alignment Preview"
-                                                fill
-                                                className="object-cover"
-                                                style={{ objectPosition }}
-                                                onClick={(e) => {
-                                                    const rect = e.currentTarget.getBoundingClientRect();
-                                                    const x = ((e.clientX - rect.left) / rect.width) * 100;
-                                                    const y = ((e.clientY - rect.top) / rect.height) * 100;
-                                                    setObjectPosition(`${Math.round(x)}% ${Math.round(y)}%`);
-                                                }}
-                                            />
-                                            {/* Crosshair indicator */}
-                                            <div
-                                                className="absolute w-4 h-4 border-2 border-white rounded-full shadow-sm pointer-events-none transform -translate-x-1/2 -translate-y-1/2 bg-black/20"
-                                                style={{
-                                                    left: objectPosition.split(' ')[0],
-                                                    top: objectPosition.split(' ')[1]
-                                                }}
-                                            />
-                                        </>
-                                    ) : (
-                                        <div className="flex items-center justify-center h-full text-gray-400 text-xs">
-                                            Upload original image to set alignment
-                                        </div>
-                                    )}
+                                    {(() => {
+                                        const targetImage = alignmentTarget === "original"
+                                            ? previews["original"]
+                                            : previews[`style-${alignmentTarget}`];
+
+                                        const targetPosition = alignmentTarget === "original"
+                                            ? objectPosition
+                                            : (artStyles[alignmentTarget as number] as any).objectPosition || "50% 50%";
+
+                                        if (targetImage) {
+                                            return (
+                                                <>
+                                                    <Image
+                                                        src={targetImage}
+                                                        alt="Alignment Preview"
+                                                        fill
+                                                        className="object-cover"
+                                                        style={{ objectPosition: targetPosition }}
+                                                        onClick={(e) => {
+                                                            const rect = e.currentTarget.getBoundingClientRect();
+                                                            const x = ((e.clientX - rect.left) / rect.width) * 100;
+                                                            const y = ((e.clientY - rect.top) / rect.height) * 100;
+                                                            const newPos = `${Math.round(x)}% ${Math.round(y)}%`;
+
+                                                            if (alignmentTarget === "original") {
+                                                                setObjectPosition(newPos);
+                                                            } else {
+                                                                const newStyles = [...artStyles];
+                                                                (newStyles[alignmentTarget as number] as any).objectPosition = newPos;
+                                                                setArtStyles(newStyles);
+                                                            }
+                                                        }}
+                                                    />
+                                                    <div
+                                                        className="absolute w-4 h-4 border-2 border-white rounded-full shadow-sm pointer-events-none transform -translate-x-1/2 -translate-y-1/2 bg-black/20"
+                                                        style={{
+                                                            left: targetPosition.split(' ')[0],
+                                                            top: targetPosition.split(' ')[1]
+                                                        }}
+                                                    />
+                                                </>
+                                            );
+                                        } else {
+                                            return (
+                                                <div className="flex items-center justify-center h-full text-gray-400 text-xs">
+                                                    {alignmentTarget === "original" ? "Upload original image" : "Upload style image"} to set alignment
+                                                </div>
+                                            );
+                                        }
+                                    })()}
                                 </div>
                                 <p className="text-[10px] text-gray-500">
-                                    Click on the image to set the focal point. This ensures the subject stays visible when cropped.
+                                    Click to set focal point for {alignmentTarget === "original" ? "the original photo" : "this art style"}.
                                 </p>
                             </div>
+                        </section>
 
-                            {/* Metadata Inputs */}
-                            <div className="grid grid-cols-3 gap-3">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Camera</label>
-                                    <input
-                                        type="text"
-                                        value={metadata.camera || ""}
-                                        onChange={(e) => setMetadata({ ...metadata, camera: e.target.value })}
-                                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none text-sm"
-                                        placeholder="e.g. Leica M6"
-                                    />
+                        {/* Video Upload (Optional) */}
+                        <section className="space-y-4 pt-4 border-t border-gray-100">
+                            <div className="pt-2">
+                                <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide block mb-1.5">
+                                    Video Source (Optional)
+                                </label>
+                                <div className="flex items-center gap-3">
+                                    <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 rounded text-xs font-medium transition-colors">
+                                        {videoFile ? "Change Video" : "Upload Video"}
+                                        <input
+                                            type="file"
+                                            accept="video/*"
+                                            className="hidden"
+                                            onChange={(e) => handleVideoChange(e.target.files?.[0] || null)}
+                                        />
+                                    </label>
+                                    {videoFile && (
+                                        <span className="text-xs text-gray-500 truncate max-w-[200px]">
+                                            {videoFile.name}
+                                        </span>
+                                    )}
+                                    {!videoFile && initialPhoto?.images.video && (
+                                        <span className="text-xs text-gray-500">
+                                            Existing video attached
+                                        </span>
+                                    )}
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Lens</label>
-                                    <input
-                                        type="text"
-                                        value={metadata.lens || ""}
-                                        onChange={(e) => setMetadata({ ...metadata, lens: e.target.value })}
-                                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none text-sm"
-                                        placeholder="e.g. 35mm f/2"
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Film</label>
-                                    <input
-                                        type="text"
-                                        value={metadata.film || ""}
-                                        onChange={(e) => setMetadata({ ...metadata, film: e.target.value })}
-                                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none text-sm"
-                                        placeholder="e.g. Portra 400"
-                                    />
-                                </div>
+                                <p className="text-[10px] text-gray-400 mt-1">
+                                    Uploading a video will automatically extract a cover frame to use as the original image.
+                                </p>
                             </div>
-                        </section >
+                        </section>
 
                         {/* Art Styles */}
                         <section className="space-y-4 pt-4 border-t border-gray-100">
@@ -578,8 +652,8 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
                                     className="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wide"
                                 >
                                     + Add Style
-                                </button >
-                            </div >
+                                </button>
+                            </div>
 
                             <div className="space-y-6">
                                 {
@@ -653,7 +727,8 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
             </div >
 
             {/* Right Side: Preview */}
-            <div className={`w-full md:w-1/2 h-full bg-gray-50 ${activeTab === "form" ? "hidden md:block" : ""}`}>
+            < div className={`w-full md:w-1/2 h-full bg-gray-50 ${activeTab === "form" ? "hidden md:block" : ""}`
+            }>
                 < LivePreview />
             </div >
         </div >

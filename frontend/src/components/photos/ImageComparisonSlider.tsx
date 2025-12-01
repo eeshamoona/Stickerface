@@ -12,6 +12,8 @@ interface ImageComparisonSliderProps {
   containerHeight?: string;
   aspectRatio?: string;
   objectPosition?: string;
+  objectPositionAfter?: string;
+  videoSrc?: string;
 }
 
 const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
@@ -23,10 +25,14 @@ const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
   containerHeight,
   aspectRatio = "16 / 9",
   objectPosition = "50% 50%",
+  objectPositionAfter,
+  videoSrc,
 }) => {
   const [sliderPosition, setSliderPosition] = useState<number>(50);
   const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleMove = useCallback((clientX: number) => {
     if (!containerRef.current) return;
@@ -109,7 +115,7 @@ const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
           src={imageAfter}
           alt={altAfter}
           fill
-          style={{ objectFit: "cover", objectPosition }}
+          style={{ objectFit: "cover", objectPosition: objectPositionAfter || objectPosition }}
           priority
           draggable={false}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -120,15 +126,42 @@ const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
         className={styles.imageWrapper}
         style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
       >
-        <Image
-          src={imageBefore}
-          alt={altBefore}
-          fill
-          style={{ objectFit: "cover", objectPosition }}
-          priority
-          draggable={false}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        />
+        {isPlaying && videoSrc ? (
+          <video
+            ref={videoRef}
+            src={videoSrc}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full"
+            style={{ objectFit: "cover", objectPosition }}
+          />
+        ) : (
+          <Image
+            src={imageBefore}
+            alt={altBefore}
+            fill
+            style={{ objectFit: "cover", objectPosition }}
+            priority
+            draggable={false}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        )}
+
+        {videoSrc && !isPlaying && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsPlaying(true);
+            }}
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-3 transition-colors z-20"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
+              <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
+            </svg>
+          </button>
+        )}
       </div>
 
       <div

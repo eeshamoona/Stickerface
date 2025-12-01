@@ -24,6 +24,7 @@ export async function addPhoto(photo: Photo): Promise<void> {
         aspect_ratio: photo.aspectRatio,
         object_position: photo.objectPosition,
         metadata: photo.metadata,
+        video: photo.images.video,
     };
     delete (dbPhoto as any).aspectRatio;
     delete (dbPhoto as any).objectPosition;
@@ -49,5 +50,9 @@ export async function getPhotos(): Promise<Photo[]> {
         aspectRatio: row.aspect_ratio,
         objectPosition: row.object_position,
         metadata: row.metadata,
+        images: {
+            ...row.images,
+            video: row.video,
+        }
     }));
 }

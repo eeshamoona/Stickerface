@@ -40,22 +40,22 @@ export default function PhotosPage() {
     <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-black selection:text-white">
       {/* Navigation / Header */}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center mb-10">
-          <h1 className="text-4xl md:text-5xl font-bold font-serif tracking-tight mb-4">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold font-serif tracking-tight mb-2">
             Gallery
           </h1>
-          <p className="text-gray-500 max-w-lg mx-auto">
+          <p className="text-sm text-gray-500 max-w-lg mx-auto">
             A collection of moments reimagined through art.
           </p>
         </div>
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-black"></div>
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-200 border-t-black"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {photos.map((photo) => (
               <Link
                 key={photo.id}

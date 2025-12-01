@@ -108,53 +108,53 @@ export default function PhotoPage() {
           </Link>
         </div>
 
-        <header className="text-center max-w-3xl mx-auto mb-12">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-gray-900 mb-6">
+        <header className="text-center max-w-3xl mx-auto mb-8">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
             {photo.title}
           </h1>
           {photo.description && (
-            <p className="text-lg text-gray-600 leading-relaxed mb-6">
+            <p className="text-base text-gray-600 leading-relaxed mb-4 max-w-2xl mx-auto">
               {photo.description}
             </p>
           )}
 
           {/* Metadata & Actions */}
-          <div className="flex flex-col items-center gap-6">
-            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-medium uppercase tracking-widest text-gray-400">
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[10px] font-medium uppercase tracking-widest text-gray-400">
               <span>{photo.date}</span>
               {photo.location && (
                 <>
-                  <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                  <span className="w-0.5 h-0.5 rounded-full bg-gray-300"></span>
                   <span>{photo.location}</span>
                 </>
               )}
               {photo.metadata?.camera && (
                 <>
-                  <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                  <span className="w-0.5 h-0.5 rounded-full bg-gray-300"></span>
                   <span>{photo.metadata.camera}</span>
                 </>
               )}
               {photo.metadata?.lens && (
                 <>
-                  <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                  <span className="w-0.5 h-0.5 rounded-full bg-gray-300"></span>
                   <span>{photo.metadata.lens}</span>
                 </>
               )}
               {photo.metadata?.film && (
                 <>
-                  <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                  <span className="w-0.5 h-0.5 rounded-full bg-gray-300"></span>
                   <span>{photo.metadata.film}</span>
                 </>
               )}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <a
                 href={photo.images.original}
                 download
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-medium rounded-full transition-colors"
+                className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-900 text-xs font-medium rounded-full transition-colors"
               >
                 Download Original
               </a>
@@ -163,7 +163,7 @@ export default function PhotoPage() {
                   navigator.clipboard.writeText(window.location.href);
                   alert("Link copied to clipboard!");
                 }}
-                className="px-4 py-2 bg-black text-white hover:bg-gray-800 text-sm font-medium rounded-full transition-colors"
+                className="px-3 py-1.5 bg-black text-white hover:bg-gray-800 text-xs font-medium rounded-full transition-colors"
               >
                 Share
               </button>
@@ -181,6 +181,8 @@ export default function PhotoPage() {
                 altAfter={currentStyle.name}
                 aspectRatio={photo.aspectRatio || "16 / 9"}
                 objectPosition={photo.objectPosition}
+                objectPositionAfter={currentStyle.objectPosition}
+                videoSrc={photo.images.video}
               />
             ) : (
               <div className="aspect-video flex items-center justify-center text-gray-400">

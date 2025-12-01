@@ -20,6 +20,7 @@ export interface ArtStyle {
   name: string;
   prompt: string;
   imagePath: string;
+  objectPosition?: string;
 }
 
 export interface Photo {
@@ -31,6 +32,7 @@ export interface Photo {
   location?: string;
   images: {
     original: string;
+    video?: string;
     artStyles: ArtStyle[];
   };
   aspectRatio?: string;
