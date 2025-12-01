@@ -40,8 +40,8 @@ export default function PhotosPage() {
     <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-black selection:text-white">
       {/* Navigation / Header */}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center mb-16">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center mb-10">
           <h1 className="text-4xl md:text-5xl font-bold font-serif tracking-tight mb-4">
             Gallery
           </h1>
@@ -55,7 +55,7 @@ export default function PhotosPage() {
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-black"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {photos.map((photo) => (
               <Link
                 key={photo.id}
@@ -63,12 +63,18 @@ export default function PhotosPage() {
                 className="group block"
               >
                 <article className="flex flex-col gap-4">
-                  <div className="relative overflow-hidden rounded-xl bg-gray-100 aspect-[4/3] shadow-sm transition-all duration-500 group-hover:shadow-md">
+                  <div
+                    className="relative overflow-hidden rounded-xl bg-gray-100 shadow-sm transition-all duration-500 group-hover:shadow-md"
+                    style={{
+                      aspectRatio: photo.aspectRatio,
+                    }}
+                  >
                     <Image
                       src={photo.images.original}
                       alt={photo.title}
                       fill
                       className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                      style={{ objectPosition: photo.objectPosition || '50% 50%' }}
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     />
                     <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/5" />

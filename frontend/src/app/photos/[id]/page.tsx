@@ -33,6 +33,8 @@ export default function PhotoPage() {
           setPhoto({
             ...data,
             aspectRatio: data.aspect_ratio,
+            objectPosition: data.object_position,
+            metadata: data.metadata,
           } as Photo);
         }
       } catch (err) {
@@ -111,18 +113,61 @@ export default function PhotoPage() {
             {photo.title}
           </h1>
           {photo.description && (
-            <p className="text-lg text-gray-600 leading-relaxed">
+            <p className="text-lg text-gray-600 leading-relaxed mb-6">
               {photo.description}
             </p>
           )}
-          <div className="flex items-center justify-center gap-3 mt-6 text-xs font-medium uppercase tracking-widest text-gray-400">
-            <span>{photo.date}</span>
-            {photo.location && (
-              <>
-                <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                <span>{photo.location}</span>
-              </>
-            )}
+
+          {/* Metadata & Actions */}
+          <div className="flex flex-col items-center gap-6">
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-medium uppercase tracking-widest text-gray-400">
+              <span>{photo.date}</span>
+              {photo.location && (
+                <>
+                  <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                  <span>{photo.location}</span>
+                </>
+              )}
+              {photo.metadata?.camera && (
+                <>
+                  <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                  <span>{photo.metadata.camera}</span>
+                </>
+              )}
+              {photo.metadata?.lens && (
+                <>
+                  <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                  <span>{photo.metadata.lens}</span>
+                </>
+              )}
+              {photo.metadata?.film && (
+                <>
+                  <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                  <span>{photo.metadata.film}</span>
+                </>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <a
+                href={photo.images.original}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-medium rounded-full transition-colors"
+              >
+                Download Original
+              </a>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  alert("Link copied to clipboard!");
+                }}
+                className="px-4 py-2 bg-black text-white hover:bg-gray-800 text-sm font-medium rounded-full transition-colors"
+              >
+                Share
+              </button>
+            </div>
           </div>
         </header>
 
@@ -135,6 +180,7 @@ export default function PhotoPage() {
                 altBefore="Original"
                 altAfter={currentStyle.name}
                 aspectRatio={photo.aspectRatio || "16 / 9"}
+                objectPosition={photo.objectPosition}
               />
             ) : (
               <div className="aspect-video flex items-center justify-center text-gray-400">

@@ -6,6 +6,7 @@ import { Photo, ArtStyle } from "@/types";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import ImageComparisonSlider from "@/components/photos/ImageComparisonSlider";
+import imageCompression from "browser-image-compression";
 
 interface PhotoFormProps {
     initialPhoto?: Photo;
@@ -23,7 +24,10 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
     const [description, setDescription] = useState(initialPhoto?.description || "");
     const [date, setDate] = useState(initialPhoto?.date || "");
     const [location, setLocation] = useState(initialPhoto?.location || "");
+
     const [aspectRatio, setAspectRatio] = useState(initialPhoto?.aspectRatio || "16 / 9");
+    const [objectPosition, setObjectPosition] = useState(initialPhoto?.objectPosition || "50% 50%");
+    const [metadata, setMetadata] = useState(initialPhoto?.metadata || { camera: "", lens: "", film: "" });
 
     // Set date on client-side only
     useEffect(() => {
@@ -51,46 +55,61 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
     });
     const [selectedPreviewStyle, setSelectedPreviewStyle] = useState<number>(0);
 
-    const handleImageChange = (
+    const handleImageChange = async (
         key: string,
         file: File | null,
         setter: (f: File | null) => void,
         calculateRatio: boolean = false
     ) => {
-        setter(file);
         if (file) {
-            const url = URL.createObjectURL(file);
-            setPreviews((prev) => ({ ...prev, [key]: url }));
+            const options = {
+                maxSizeMB: 4,
+                maxWidthOrHeight: 2560,
+                useWebWorker: true,
+            };
+            try {
+                const compressedFile = await imageCompression(file, options);
+                setter(compressedFile);
+                const url = URL.createObjectURL(compressedFile);
+                setPreviews((prev) => ({ ...prev, [key]: url }));
 
-            if (calculateRatio) {
-                const img = new window.Image();
-                img.onload = () => {
-                    const w = img.width;
-                    const h = img.height;
-                    const ratio = w / h;
+                if (calculateRatio) {
+                    const img = new window.Image();
+                    img.onload = () => {
+                        const w = img.width;
+                        const h = img.height;
+                        const ratio = w / h;
 
-                    let aspectRatio = "16 / 9";
-                    if (Math.abs(ratio - 1) < 0.05) aspectRatio = "1 / 1";
-                    else if (Math.abs(ratio - 4 / 3) < 0.05) aspectRatio = "4 / 3";
-                    else if (Math.abs(ratio - 3 / 2) < 0.05) aspectRatio = "3 / 2";
-                    else if (Math.abs(ratio - 16 / 9) < 0.05) aspectRatio = "16 / 9";
-                    else if (Math.abs(ratio - 3 / 4) < 0.05) aspectRatio = "3 / 4";
-                    else if (Math.abs(ratio - 2 / 3) < 0.05) aspectRatio = "2 / 3";
-                    else if (Math.abs(ratio - 9 / 16) < 0.05) aspectRatio = "9 / 16";
-                    else {
-                        const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
-                        const divisor = gcd(w, h);
-                        const simplifiedW = w / divisor;
-                        const simplifiedH = h / divisor;
-                        aspectRatio = (simplifiedW > 100 || simplifiedH > 100)
-                            ? `${Math.round(ratio * 100) / 100} / 1`
-                            : `${simplifiedW} / ${simplifiedH}`;
-                    }
-                    setAspectRatio(aspectRatio);
-                };
-                img.src = url;
+                        let aspectRatio = "16 / 9";
+                        if (Math.abs(ratio - 1) < 0.05) aspectRatio = "1 / 1";
+                        else if (Math.abs(ratio - 4 / 3) < 0.05) aspectRatio = "4 / 3";
+                        else if (Math.abs(ratio - 3 / 2) < 0.05) aspectRatio = "3 / 2";
+                        else if (Math.abs(ratio - 16 / 9) < 0.05) aspectRatio = "16 / 9";
+                        else if (Math.abs(ratio - 3 / 4) < 0.05) aspectRatio = "3 / 4";
+                        else if (Math.abs(ratio - 2 / 3) < 0.05) aspectRatio = "2 / 3";
+                        else if (Math.abs(ratio - 9 / 16) < 0.05) aspectRatio = "9 / 16";
+                        else {
+                            const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
+                            const divisor = gcd(w, h);
+                            const simplifiedW = w / divisor;
+                            const simplifiedH = h / divisor;
+                            aspectRatio = (simplifiedW > 100 || simplifiedH > 100)
+                                ? `${Math.round(ratio * 100) / 100} / 1`
+                                : `${simplifiedW} / ${simplifiedH}`;
+                        }
+                        setAspectRatio(aspectRatio);
+                    };
+                    img.src = url;
+                }
+            } catch (error) {
+                console.error("Compression error:", error);
+                // Fallback to original file
+                setter(file);
+                const url = URL.createObjectURL(file);
+                setPreviews((prev) => ({ ...prev, [key]: url }));
             }
         } else {
+            setter(null);
             setPreviews((prev) => {
                 const newPreviews = { ...prev };
                 delete newPreviews[key];
@@ -99,13 +118,30 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
         }
     };
 
-    const handleArtStyleImageChange = (index: number, file: File | null) => {
-        const newStyles = [...artStyles];
-        newStyles[index] = { ...newStyles[index], image: file };
-        setArtStyles(newStyles);
-
+    const handleArtStyleImageChange = async (index: number, file: File | null) => {
         if (file) {
-            setPreviews(prev => ({ ...prev, [`style-${index}`]: URL.createObjectURL(file) }));
+            const options = {
+                maxSizeMB: 4,
+                maxWidthOrHeight: 2560,
+                useWebWorker: true,
+            };
+            try {
+                const compressedFile = await imageCompression(file, options);
+                const newStyles = [...artStyles];
+                newStyles[index] = { ...newStyles[index], image: compressedFile };
+                setArtStyles(newStyles);
+                setPreviews(prev => ({ ...prev, [`style-${index}`]: URL.createObjectURL(compressedFile) }));
+            } catch (error) {
+                console.error("Compression error:", error);
+                const newStyles = [...artStyles];
+                newStyles[index] = { ...newStyles[index], image: file };
+                setArtStyles(newStyles);
+                setPreviews(prev => ({ ...prev, [`style-${index}`]: URL.createObjectURL(file) }));
+            }
+        } else {
+            const newStyles = [...artStyles];
+            newStyles[index] = { ...newStyles[index], image: null };
+            setArtStyles(newStyles);
         }
     };
 
@@ -190,6 +226,8 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
                     artStyles: uploadedStyles
                 },
                 aspectRatio,
+                objectPosition,
+                metadata,
             };
 
             await addPhoto(photoData);
@@ -448,6 +486,86 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
                                     )
                                 }
                             </div >
+                        </section >
+
+                        {/* Alignment & Metadata */}
+                        <section className="space-y-4 pt-4 border-t border-gray-100">
+                            <h2 className="text-sm font-bold text-gray-900">Alignment & Metadata</h2>
+
+                            {/* Alignment Editor */}
+                            <div className="space-y-2">
+                                <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                                    Focal Point ({objectPosition})
+                                </label>
+                                <div className="relative w-full aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200 cursor-crosshair group">
+                                    {previews["original"] ? (
+                                        <>
+                                            <Image
+                                                src={previews["original"]}
+                                                alt="Alignment Preview"
+                                                fill
+                                                className="object-cover"
+                                                style={{ objectPosition }}
+                                                onClick={(e) => {
+                                                    const rect = e.currentTarget.getBoundingClientRect();
+                                                    const x = ((e.clientX - rect.left) / rect.width) * 100;
+                                                    const y = ((e.clientY - rect.top) / rect.height) * 100;
+                                                    setObjectPosition(`${Math.round(x)}% ${Math.round(y)}%`);
+                                                }}
+                                            />
+                                            {/* Crosshair indicator */}
+                                            <div
+                                                className="absolute w-4 h-4 border-2 border-white rounded-full shadow-sm pointer-events-none transform -translate-x-1/2 -translate-y-1/2 bg-black/20"
+                                                style={{
+                                                    left: objectPosition.split(' ')[0],
+                                                    top: objectPosition.split(' ')[1]
+                                                }}
+                                            />
+                                        </>
+                                    ) : (
+                                        <div className="flex items-center justify-center h-full text-gray-400 text-xs">
+                                            Upload original image to set alignment
+                                        </div>
+                                    )}
+                                </div>
+                                <p className="text-[10px] text-gray-500">
+                                    Click on the image to set the focal point. This ensures the subject stays visible when cropped.
+                                </p>
+                            </div>
+
+                            {/* Metadata Inputs */}
+                            <div className="grid grid-cols-3 gap-3">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Camera</label>
+                                    <input
+                                        type="text"
+                                        value={metadata.camera || ""}
+                                        onChange={(e) => setMetadata({ ...metadata, camera: e.target.value })}
+                                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none text-sm"
+                                        placeholder="e.g. Leica M6"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Lens</label>
+                                    <input
+                                        type="text"
+                                        value={metadata.lens || ""}
+                                        onChange={(e) => setMetadata({ ...metadata, lens: e.target.value })}
+                                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none text-sm"
+                                        placeholder="e.g. 35mm f/2"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Film</label>
+                                    <input
+                                        type="text"
+                                        value={metadata.film || ""}
+                                        onChange={(e) => setMetadata({ ...metadata, film: e.target.value })}
+                                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none text-sm"
+                                        placeholder="e.g. Portra 400"
+                                    />
+                                </div>
+                            </div>
                         </section >
 
                         {/* Art Styles */}

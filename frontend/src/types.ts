@@ -34,4 +34,10 @@ export interface Photo {
     artStyles: ArtStyle[];
   };
   aspectRatio?: string;
+  objectPosition?: string;
+  metadata?: {
+    camera?: string;
+    lens?: string;
+    film?: string;
+  };
 }

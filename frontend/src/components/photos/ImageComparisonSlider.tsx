@@ -11,6 +11,7 @@ interface ImageComparisonSliderProps {
   containerWidth?: string;
   containerHeight?: string;
   aspectRatio?: string;
+  objectPosition?: string;
 }
 
 const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
@@ -21,6 +22,7 @@ const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
   containerWidth = "100%",
   containerHeight,
   aspectRatio = "16 / 9",
+  objectPosition = "50% 50%",
 }) => {
   const [sliderPosition, setSliderPosition] = useState<number>(50);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -107,7 +109,7 @@ const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
           src={imageAfter}
           alt={altAfter}
           fill
-          style={{ objectFit: "contain" }}
+          style={{ objectFit: "cover", objectPosition }}
           priority
           draggable={false}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -122,7 +124,7 @@ const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
           src={imageBefore}
           alt={altBefore}
           fill
-          style={{ objectFit: "contain" }}
+          style={{ objectFit: "cover", objectPosition }}
           priority
           draggable={false}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
