@@ -39,7 +39,7 @@ export async function extractFrameFromVideo(videoFile: File, timeInSeconds: numb
 
             canvas.toBlob((blob) => {
                 if (blob) {
-                    const imageFile = new File([blob], "cover-frame.jpg", { type: "image/jpeg" });
+                    const imageFile = new File([blob], `frame-${timeInSeconds}.jpg`, { type: "image/jpeg" });
                     resolve(imageFile);
                     URL.revokeObjectURL(video.src);
                 } else {
@@ -47,5 +47,38 @@ export async function extractFrameFromVideo(videoFile: File, timeInSeconds: numb
                 }
             }, "image/jpeg", 0.95);
         }
+    });
+}
+
+export async function generateVideoThumbnails(videoFile: File, count: number = 5): Promise<File[]> {
+    return new Promise((resolve, reject) => {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.src = URL.createObjectURL(videoFile);
+        video.muted = true;
+        video.playsInline = true;
+
+        video.onloadedmetadata = async () => {
+            const duration = video.duration;
+            const interval = duration / (count + 1);
+            const thumbnails: File[] = [];
+
+            try {
+                for (let i = 1; i <= count; i++) {
+                    const time = interval * i;
+                    const file = await extractFrameFromVideo(videoFile, time);
+                    thumbnails.push(file);
+                }
+                resolve(thumbnails);
+            } catch (error) {
+                reject(error);
+            } finally {
+                URL.revokeObjectURL(video.src);
+            }
+        };
+
+        video.onerror = () => {
+            reject(new Error("Failed to load video metadata"));
+        };
     });
 }

@@ -55,14 +55,14 @@ export default function PhotosPage() {
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-200 border-t-black"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
             {photos.map((photo) => (
               <Link
                 key={photo.id}
                 href={`/photos/${photo.slug || photo.id}`}
-                className="group block"
+                className="group block break-inside-avoid mb-6"
               >
-                <article className="flex flex-col gap-4">
+                <article className="flex flex-col gap-3">
                   <div
                     className="relative overflow-hidden rounded-xl bg-gray-100 shadow-sm transition-all duration-500 group-hover:shadow-md"
                     style={{
@@ -80,7 +80,7 @@ export default function PhotosPage() {
                     <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/5" />
                   </div>
 
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     <h2 className="text-lg font-bold font-serif leading-snug group-hover:underline decoration-1 underline-offset-4">
                       {photo.title}
                     </h2>
@@ -89,7 +89,10 @@ export default function PhotosPage() {
                       {photo.images.artStyles && photo.images.artStyles.length > 0 && (
                         <>
                           <span className="w-0.5 h-0.5 rounded-full bg-gray-300"></span>
-                          <span>{photo.images.artStyles.length} Styles</span>
+                          <span>
+                            {photo.images.artStyles.length}{" "}
+                            {photo.images.artStyles.length === 1 ? "Style" : "Styles"}
+                          </span>
                         </>
                       )}
                     </div>

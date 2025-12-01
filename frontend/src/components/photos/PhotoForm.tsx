@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import ImageComparisonSlider from "@/components/photos/ImageComparisonSlider";
 import imageCompression from "browser-image-compression";
-import { extractFrameFromVideo } from "@/lib/video-utils";
+import { extractFrameFromVideo, generateVideoThumbnails } from "@/lib/video-utils";
 
 interface PhotoFormProps {
     initialPhoto?: Photo;
@@ -41,6 +41,7 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
     // Image Files State
     const [originalImage, setOriginalImage] = useState<File | null>(null);
     const [videoFile, setVideoFile] = useState<File | null>(null);
+    const [videoThumbnails, setVideoThumbnails] = useState<{ file: File; url: string }[]>([]);
     const [artStyles, setArtStyles] = useState<{ name: string; prompt: string; image: File | null; objectPosition?: string }[]>(
         initialPhoto?.images.artStyles?.map(style => ({
             name: style.name,
@@ -127,16 +128,25 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
         if (file) {
             setVideoFile(file);
             try {
-                // Extract frame to use as the "Original Image"
-                const frame = await extractFrameFromVideo(file);
-                // Treat this frame as if the user uploaded an image
-                handleImageChange("original", frame, setOriginalImage, true);
+                // Generate thumbnails
+                const thumbnails = await generateVideoThumbnails(file, 5);
+                const thumbnailData = thumbnails.map(t => ({
+                    file: t,
+                    url: URL.createObjectURL(t)
+                }));
+                setVideoThumbnails(thumbnailData);
+
+                // Set the middle thumbnail as default if no original image is set
+                if (thumbnailData.length > 0 && !originalImage && !initialPhoto?.images.original) {
+                    handleImageChange("original", thumbnailData[Math.floor(thumbnailData.length / 2)].file, setOriginalImage, true);
+                }
             } catch (error) {
-                console.error("Error extracting frame:", error);
+                console.error("Error processing video:", error);
                 setError("Failed to process video. Please try another file.");
             }
         } else {
             setVideoFile(null);
+            setVideoThumbnails([]);
         }
     };
 
@@ -206,6 +216,7 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
             if (originalImage) {
                 const formData = new FormData();
                 formData.append("file", originalImage);
+                formData.append("filename", `${slug || photoId}/original-${Date.now()}.${originalImage.name.split('.').pop()}`);
                 originalUrl = await uploadImage(formData);
             }
 
@@ -216,6 +227,7 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
             if (videoFile) {
                 const formData = new FormData();
                 formData.append("file", videoFile);
+                formData.append("filename", `${slug || photoId}/video-${Date.now()}.${videoFile.name.split('.').pop()}`);
                 videoUrl = await uploadImage(formData);
             }
 
@@ -229,6 +241,8 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
                 if (style.image) {
                     const formData = new FormData();
                     formData.append("file", style.image);
+                    const styleNameSlug = style.name.toLowerCase().replace(/\s+/g, "-");
+                    formData.append("filename", `${slug || photoId}/${styleNameSlug}-${Date.now()}.${style.image.name.split('.').pop()}`);
                     styleUrl = await uploadImage(formData);
                 } else if (initialPhoto?.images.artStyles?.[i]) {
                     styleUrl = initialPhoto.images.artStyles[i].imagePath;
@@ -637,8 +651,31 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
                                     )}
                                 </div>
                                 <p className="text-[10px] text-gray-400 mt-1">
-                                    Uploading a video will automatically extract a cover frame to use as the original image.
+                                    Uploading a video will automatically generate thumbnails. Select one to use as the cover image.
                                 </p>
+
+                                {videoThumbnails.length > 0 && (
+                                    <div className="mt-3">
+                                        <label className="text-[10px] font-medium text-gray-500 block mb-2">Select Cover Frame:</label>
+                                        <div className="flex gap-2 overflow-x-auto pb-2">
+                                            {videoThumbnails.map((thumb, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    type="button"
+                                                    onClick={() => handleImageChange("original", thumb.file, setOriginalImage, true)}
+                                                    className="relative w-20 h-12 shrink-0 rounded overflow-hidden border-2 border-transparent hover:border-blue-500 focus:border-blue-500 transition-all"
+                                                >
+                                                    <Image
+                                                        src={thumb.url}
+                                                        alt={`Frame ${idx}`}
+                                                        fill
+                                                        className="object-cover"
+                                                    />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </section>
 

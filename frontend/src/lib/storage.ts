@@ -7,15 +7,45 @@ import { Photo } from "@/types";
 
 export async function uploadImage(formData: FormData): Promise<string> {
     const file = formData.get("file") as File;
+    const customFilename = formData.get("filename") as string;
+
     if (!file) {
         throw new Error("No file provided");
     }
 
-    const filename = `${Date.now()}-${file.name}`;
+    const filename = customFilename || `${Date.now()}-${file.name}`;
     const blob = await put(filename, file, {
         access: "public",
     });
     return blob.url;
+}
+
+export async function deletePhoto(id: string): Promise<void> {
+    // Get the photo first to find blob URLs
+    const { data: photo, error: fetchError } = await supabaseAdmin
+        .from("photos")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+    if (fetchError) {
+        throw new Error(`Error finding photo to delete: ${fetchError.message}`);
+    }
+
+    // Delete from database
+    const { error: deleteError } = await supabaseAdmin
+        .from("photos")
+        .delete()
+        .eq("id", id);
+
+    if (deleteError) {
+        throw new Error(`Error deleting photo record: ${deleteError.message}`);
+    }
+
+    // Note: We can't easily delete from Vercel Blob without the full blob URL or token
+    // and the del() function from @vercel/blob.
+    // For now, we'll just remove the DB record as requested.
+    // Ideally, we would track blob URLs and delete them here.
 }
 
 export async function addPhoto(photo: Photo): Promise<void> {
