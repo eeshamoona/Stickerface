@@ -17,6 +17,7 @@ export default function PhotoPage() {
   const [mounted, setMounted] = useState(false);
   const [selectedStyleId, setSelectedStyleId] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -217,6 +218,8 @@ export default function PhotoPage() {
                   objectPosition={photo.objectPosition}
                   objectPositionAfter={currentStyle.objectPosition}
                   videoSrc={photo.images.video}
+                  isVideoPlaying={isVideoPlaying}
+                  onVideoPlayingChange={setIsVideoPlaying}
                 />
               ) : (
                 <div className="aspect-video flex items-center justify-center text-gray-400">
@@ -224,10 +227,36 @@ export default function PhotoPage() {
                 </div>
               )}
             </div>
-            <div className="mt-2 flex justify-center">
+            
+            {/* Video Controls and Slider Hint */}
+            <div className="mt-2 flex items-center justify-between">
               <p className="text-[10px] text-gray-400 uppercase tracking-widest font-medium">
                 Drag slider to compare
               </p>
+              
+              {photo.images.video && (
+                <button
+                  onClick={() => setIsVideoPlaying(!isVideoPlaying)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-gray-900 rounded-full text-xs font-medium transition-colors"
+                  title={isVideoPlaying ? "Pause Video" : "Play Video"}
+                >
+                  {isVideoPlaying ? (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                        <path d="M5 5h10v10H5z" />
+                      </svg>
+                      Stop Video
+                    </>
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                        <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                      </svg>
+                      Play Video
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
 

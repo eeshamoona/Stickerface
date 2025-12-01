@@ -46,7 +46,7 @@ export default function PhotosPage() {
             Gallery
           </h1>
           <p className="text-sm text-gray-500 max-w-lg mx-auto">
-            A collection of moments reimagined through art.
+            A collection of the best moments reimagined with image generation.
           </p>
         </div>
 
