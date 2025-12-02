@@ -38,6 +38,6 @@ export interface Photo {
   aspectRatio?: string;
   objectPosition?: string;
   metadata?: {
-    [key: string]: string;
+    [key: string]: unknown;
   };
 }
