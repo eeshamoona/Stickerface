@@ -8,6 +8,8 @@ import Image from "next/image";
 
 import { deletePhoto } from "@/lib/storage";
 
+export const dynamic = 'force-dynamic';
+
 export default function ManagePhotosPage() {
     const [photos, setPhotos] = useState<Photo[]>([]);
     const [loading, setLoading] = useState(true);

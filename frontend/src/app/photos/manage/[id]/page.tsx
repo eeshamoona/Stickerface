@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabase";
 import { Photo } from "@/types";
 import PhotoForm from "@/components/photos/PhotoForm";
 
+export const dynamic = 'force-dynamic';
+
 export default function EditPhotoPage() {
     const { id } = useParams() as { id: string };
     const [photo, setPhoto] = useState<Photo | null>(null);
