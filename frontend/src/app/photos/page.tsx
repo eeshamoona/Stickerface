@@ -8,6 +8,8 @@ import { supabase } from "../../lib/supabase";
 import { getPhotos } from "../../lib/storage";
 import { Photo } from "../../types";
 
+export const dynamic = 'force-dynamic';
+
 export default function PhotosPage() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +61,7 @@ export default function PhotosPage() {
             {photos.map((photo) => (
               <Link
                 key={photo.id}
-                href={`/photos/${photo.slug || photo.id}`}
+                href={`/ photos / ${photo.slug || photo.id} `}
                 className="group block break-inside-avoid mb-6"
               >
                 <article className="flex flex-col gap-3">
