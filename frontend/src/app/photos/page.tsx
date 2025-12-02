@@ -61,7 +61,7 @@ export default function PhotosPage() {
             {photos.map((photo) => (
               <Link
                 key={photo.id}
-                href={`/ photos / ${photo.slug || photo.id} `}
+                href={`/photos/${photo.slug || photo.id}`}
                 className="group block break-inside-avoid mb-6"
               >
                 <article className="flex flex-col gap-3">
