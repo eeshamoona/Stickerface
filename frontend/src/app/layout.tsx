@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -23,7 +23,6 @@ export default function RootLayout({
       <body suppressHydrationWarning={true}>
         <header className="sticky top-0 bg-white/90 backdrop-blur-md z-20 border-b border-gray-100">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Reduced header height */}
             <div
               className={`h-14 flex items-center justify-between ${nunito.className}`}
             >
