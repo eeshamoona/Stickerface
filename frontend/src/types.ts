@@ -6,37 +6,38 @@ export interface Sticker {
   description: string;
   color: string;
   type:
-    | "fortune"
-    | "pet"
-    | "spell"
-    | "perfect-day"
-    | "button"
-    | "purrfect-timing";
+  | "fortune"
+  | "pet"
+  | "spell"
+  | "perfect-day"
+  | "button"
+  | "purrfect-timing";
   imageSrc: string;
 }
 
 export interface ArtStyle {
   id: string;
   name: string;
-  description: string;
+  prompt?: string;
   imagePath: string;
+  objectPosition?: string;
 }
 
 export interface Photo {
   id: string;
+  slug: string; // Manual URL slug
   title: string;
   description: string;
-  type: "comparison" | "single" | "gallery" | "art-styles";
   date: string;
   location?: string;
-  color?: string;
   images: {
     original: string;
-    artStyles?: ArtStyle[];
-    before?: string;
-    after?: string;
-    main?: string;
-    gallery?: string[];
+    video?: string;
+    artStyles: ArtStyle[];
   };
   aspectRatio?: string;
+  objectPosition?: string;
+  metadata?: {
+    [key: string]: unknown;
+  };
 }

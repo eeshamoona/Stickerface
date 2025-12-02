@@ -1,343 +1,319 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { FaArrowLeft, FaExclamationTriangle } from "react-icons/fa"; // Using react-icons
-
 import ImageComparisonSlider from "../../../components/photos/ImageComparisonSlider";
-import { getPhoto } from "../../../lib/photos";
+import { supabase } from "../../../lib/supabase";
 import type { Photo } from "../../../types";
 
-// --- Helper: Enhanced Error Message Component ---
-function ErrorDisplay({
-  title = "Error",
-  message,
-}: {
-  title?: string;
-  message: string;
-}) {
-  return (
-    <div className="my-3 rounded border border-red-300 bg-red-50 p-2">
-      <div className="flex items-center">
-        <FaExclamationTriangle
-          className="h-4 w-4 text-red-400 mr-2 flex-shrink-0"
-          aria-hidden="true"
-        />
-        <div>
-          <h3 className="text-xs font-medium text-red-800">{title}</h3>
-          <p className="text-xs text-red-700">{message}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
+import JSZip from "jszip";
 
-// --- Photo component types ---
-const PhotoComponents = {
-  comparison: ComparisonPhoto,
-  single: SinglePhoto,
-  gallery: GalleryPhoto,
-  "art-styles": ArtStylesPhoto,
-};
-
-// --- Main Page Component ---
 export default function PhotoPage() {
   const { id } = useParams() as { id: string };
-  const photo = getPhoto(id);
+  const [photo, setPhoto] = useState<Photo | null>(null);
+  const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [selectedStyleId, setSelectedStyleId] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
 
-  // --- Loading State: Basic Spinner (CSS only) ---
-  if (!mounted) {
+    async function fetchPhoto() {
+      try {
+        const { data, error } = await supabase
+          .from("photos")
+          .select("*")
+          .or(`id.eq.${id},slug.eq.${id}`)
+          .single();
+
+        if (error) {
+          console.error("Error fetching photo:", error);
+          setPhoto(null);
+        } else if (data) {
+          setPhoto({
+            ...data,
+            aspectRatio: data.aspect_ratio,
+            objectPosition: data.object_position,
+            metadata: data.metadata,
+          } as Photo);
+        }
+      } catch (err) {
+        console.error("Error:", err);
+        setPhoto(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchPhoto();
+  }, [id]);
+
+  useEffect(() => {
+    if (photo?.images.artStyles && photo.images.artStyles.length > 0) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const styleParam = urlParams.get("style");
+      if (styleParam && photo.images.artStyles.some(s => s.id === styleParam)) {
+        setSelectedStyleId(styleParam);
+      } else if (!selectedStyleId) {
+        setSelectedStyleId(photo.images.artStyles[0].id);
+      }
+    }
+  }, [photo, selectedStyleId]);
+
+  const handleStyleSelect = (styleId: string) => {
+    setSelectedStyleId(styleId);
+    const url = new URL(window.location.href);
+    url.searchParams.set("style", styleId);
+    window.history.replaceState({}, "", url.toString());
+  };
+
+  const handleDownloadAll = async () => {
+    if (!photo) return;
+    setDownloading(true);
+
+    try {
+      const zip = new JSZip();
+
+      // Add original
+      const originalBlob = await fetch(photo.images.original).then(r => r.blob());
+      const originalExt = photo.images.original.split('.').pop() || 'jpg';
+      zip.file(`original.${originalExt}`, originalBlob);
+
+      // Add styles
+      if (photo.images.artStyles) {
+        await Promise.all(photo.images.artStyles.map(async (style) => {
+          const styleBlob = await fetch(style.imagePath).then(r => r.blob());
+          const styleExt = style.imagePath.split('.').pop() || 'jpg';
+          const safeName = style.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+          zip.file(`${safeName}.${styleExt}`, styleBlob);
+        }));
+      }
+
+      // Generate and download
+      const content = await zip.generateAsync({ type: "blob" });
+      const url = window.URL.createObjectURL(content);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${photo.slug || photo.id}-assets.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Error downloading assets:", error);
+      alert("Failed to download assets. Please try again.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  if (!mounted || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-100">
-        {/* Basic CSS Spinner */}
-        <style jsx>{`
-          .loader {
-            border: 4px solid #f3f3f3; /* Light grey */
-            border-top: 4px solid #3498db; /* Blue */
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-          }
-          @keyframes spin {
-            0% {
-              transform: rotate(0deg);
-            }
-            100% {
-              transform: rotate(360deg);
-            }
-          }
-        `}</style>
-        <div className="loader"></div>
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-black"></div>
       </div>
     );
   }
 
-  // --- Not Found State: Clearer Message ---
   if (!photo) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center space-y-3 bg-gray-100 p-4 text-center">
-        <FaExclamationTriangle
-          className="h-8 w-8 text-amber-500"
-          aria-hidden="true"
-        />
-        <h1 className="text-xl font-semibold text-gray-800">Photo Not Found</h1>
-        <p className="max-w-md text-sm text-gray-600">
-          Sorry, the photo you were looking for doesn&apos;t seem to exist or
-          may have been moved.
-        </p>
+      <div className="flex min-h-screen flex-col items-center justify-center space-y-4 bg-white p-4 text-center">
+        <h1 className="text-2xl font-bold text-gray-900">Photo Not Found</h1>
+        <p className="text-gray-500">The photo you are looking for does not exist.</p>
         <Link
           href="/photos"
-          className="inline-flex items-center rounded-md bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-100"
+          className="text-sm font-medium text-black underline underline-offset-4 hover:text-gray-600"
         >
-          <FaArrowLeft className="-ml-1 mr-2 h-4 w-4" aria-hidden="true" />
-          Back to Photo Gallery
+          Back to Gallery
         </Link>
       </div>
     );
   }
 
-  // Dynamically render the appropriate photo component based on type
-  const PhotoComponent = PhotoComponents[photo.type];
-
-  // Subtle background using photo color with low opacity, default to very light gray
-  const pageBackgroundColor = photo.color ? `${photo.color}1A` : "#F9FAFB"; // gray-50
+  const currentStyle = photo.images.artStyles?.find(s => s.id === selectedStyleId);
 
   return (
-    <div
-      className="photo-page min-h-screen p-4 sm:p-6 lg:p-8" // Generous page padding
-      style={{ backgroundColor: pageBackgroundColor }}
-    >
-      {/* Using max-w-5xl for more space around content, enhanced padding/styling */}
-      <div className="mx-auto w-full max-w-5xl rounded-xl bg-white p-3 shadow-md md:p-5">
-        {/* Back Navigation */}
-        <div className="mb-3">
+    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-black selection:text-white">
+      <main className="pt-8 pb-16 md:pt-16 md:pb-24 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+        {/* Back to Gallery Link */}
+        <div className="mb-8">
           <Link
             href="/photos"
-            className="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1 rounded"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-black transition-colors"
           >
-            <FaArrowLeft className="mr-1 h-3 w-3" aria-hidden="true" />
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
             Back to Gallery
           </Link>
         </div>
 
-        {/* Header Section: Compact */}
-        <header className="mb-4 border-b border-gray-200 pb-3">
-          <h1 className="mb-1 text-center text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
-            {photo.title}
-          </h1>
-          {photo.description && (
-            <p className="mb-2 text-center text-sm text-gray-600">
-              {photo.description}
-            </p>
-          )}
-          {/* Meta Info: Smaller */}
-          <div className="text-center text-xs text-gray-500">
-            <span>{photo.date}</span>
+        {/* Main Content */}
+        <div className="max-w-4xl mx-auto">
+
+          {/* Title Section */}
+          <div className="mb-6">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">{photo.title}</h1>
+          </div>
+
+          {/* Comparison Slider */}
+          <div className="mb-6">
+            <div className="max-w-4xl mx-auto max-h-[85vh] rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-gray-50">
+              {photo.images.original && currentStyle ? (
+                <ImageComparisonSlider
+                  imageBefore={photo.images.original}
+                  imageAfter={currentStyle.imagePath}
+                  altBefore="Original Photo"
+                  altAfter={currentStyle.name}
+                  aspectRatio={photo.aspectRatio || "16 / 9"}
+                  objectPosition={photo.objectPosition}
+                  objectPositionAfter={currentStyle.objectPosition}
+                  videoSrc={photo.images.video}
+                  isVideoPlaying={isVideoPlaying}
+                  onVideoPlayingChange={setIsVideoPlaying}
+                />
+              ) : (
+                <div className="aspect-video flex items-center justify-center text-gray-400">
+                  Image not available
+                </div>
+              )}
+            </div>
+
+            {/* Video Controls and Slider Hint */}
+            <div className="mt-2 flex items-center justify-between">
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-medium">
+                Drag slider to compare
+              </p>
+
+              {photo.images.video && (
+                <button
+                  onClick={() => setIsVideoPlaying(!isVideoPlaying)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-gray-900 rounded-full text-xs font-medium transition-colors"
+                  title={isVideoPlaying ? "Pause Video" : "Play Video"}
+                >
+                  {isVideoPlaying ? (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                        <path d="M5 5h10v10H5z" />
+                      </svg>
+                      Stop Video
+                    </>
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                        <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                      </svg>
+                      Play Video
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Date & Location */}
+          <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-10">
+            <span>{new Date(photo.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
             {photo.location && (
-              <span className="before:content-['•'] before:mx-1">
-                {photo.location}
-              </span>
+              <>
+                <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(photo.location)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 hover:text-blue-600 hover:underline transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                    <path fillRule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.45-.96 2.337-1.774 1.775-1.626 3.794-4.02 3.794-6.577 0-3.866-3.134-7-7-7s-7 3.134-7 7c0 2.557 2.019 4.951 3.794 6.577.887.814 1.717 1.39 2.337 1.774.311.192.571.337.757.433a5.744 5.744 0 00.299.148l.006.003.002.001zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                  </svg>
+                  {photo.location}
+                </a>
+              </>
             )}
           </div>
-        </header>
 
-        {/* Main Content Area: Reduced spacing */}
-        <main className="mb-4">
-          <PhotoComponent photo={photo} />
-        </main>
+          {/* Art Styles Grid */}
+          <div className="space-y-6 mb-10">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h2 className="text-lg font-bold text-gray-900">Art Styles</h2>
+              <span className="text-xs text-gray-500">{photo.images.artStyles.length} styles</span>
+            </div>
 
-        {/* Optional Footer Area (can add related photos, etc. later) */}
-        {/* Currently empty, but provides structure */}
-        <footer>
-          {/* Example: Could add a simple "End of content" or related links */}
-        </footer>
-      </div>
-    </div>
-  );
-}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {photo.images.artStyles.map((style, idx) => (
+                <div
+                  key={idx}
+                  className="group relative flex flex-col gap-2 cursor-pointer"
+                  onClick={() => handleStyleSelect(style.id)}
+                >
+                  {/* Style Image Preview */}
+                  <div className={`relative aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 shadow-sm transition-all duration-300 ${selectedStyleId === style.id
+                    ? "ring-2 ring-black ring-offset-2 opacity-100"
+                    : "opacity-60 hover:opacity-100 hover:shadow-md"
+                    }`}>
+                    <Image
+                      src={style.imagePath}
+                      alt={style.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 50vw, 33vw"
+                    />
+                  </div>
 
-// --- Sub-Components (Enhanced Styling) ---
+                  {/* Style Info */}
+                  <div className="flex items-start justify-between gap-2 px-1">
+                    <div className="min-w-0">
+                      <h3 className={`font-bold text-sm truncate ${selectedStyleId === style.id ? "text-gray-900" : "text-gray-500 group-hover:text-gray-700"}`}>
+                        {style.name}
+                      </h3>
+                      <p className="text-[10px] text-gray-400 truncate mt-0.5">
+                        {style.prompt}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-// Component for comparison type photos (before/after slider)
-function ComparisonPhoto({ photo }: { photo: Photo }) {
-  if (!photo.images.before || !photo.images.after) {
-    return (
-      <ErrorDisplay message="Missing before or after images required for comparison." />
-    );
-  }
+          {/* Description & Metadata */}
+          <div className="max-w-2xl">
+            {photo.description && (
+              <p className="text-base text-gray-600 leading-relaxed mb-4">
+                {photo.description}
+              </p>
+            )}
 
-  // Original wrapper structure ensures it fits container width.
-  // Slider itself handles aspect ratio.
-  return (
-    <div className="max-w-full mx-auto overflow-hidden rounded-lg border border-gray-200">
-      <ImageComparisonSlider
-        imageBefore={photo.images.before}
-        imageAfter={photo.images.after}
-        altBefore={`${photo.title} - Before`}
-        altAfter={`${photo.title} - After`}
-        aspectRatio={photo.aspectRatio || "16 / 9"} // Key for maintaining size ratio
-      />
-    </div>
-  );
-}
+            {/* Camera Metadata */}
+          </div>
 
-// Component for single photo display
-function SinglePhoto({ photo }: { photo: Photo }) {
-  if (!photo.images.main) {
-    return <ErrorDisplay message="The main image could not be loaded." />;
-  }
+          {/* Inconspicuous Download Button */}
+          <div className="mt-16 pt-8 border-t border-gray-100 flex justify-center">
+            <button
+              onClick={handleDownloadAll}
+              disabled={downloading}
+              className="group flex items-center gap-2 px-4 py-2 text-gray-400 hover:text-gray-900 text-xs font-medium transition-colors disabled:opacity-50"
+              title="Download All Assets"
+            >
+              {downloading ? (
+                <div className="w-3.5 h-3.5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 group-hover:scale-110 transition-transform">
+                  <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" />
+                  <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
+                </svg>
+              )}
+              <span className="underline underline-offset-4 decoration-transparent group-hover:decoration-gray-300 transition-all">Download Assets</span>
+            </button>
+          </div>
 
-  // Container defines aspect ratio, Image fills it using 'contain'
-  return (
-    <div
-      className="relative w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50" // Added subtle bg
-      style={{ aspectRatio: photo.aspectRatio || "16 / 9" }} // Key for maintaining size ratio
-    >
-      <Image
-        src={photo.images.main}
-        alt={photo.title}
-        fill
-        style={{ objectFit: "contain" }} // Ensures whole image is visible within aspect ratio
-        priority
-        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 80vw, 1024px" // Adjusted for max-w-5xl
-      />
-    </div>
-  );
-}
-
-// Component for gallery type photos
-function GalleryPhoto({ photo }: { photo: Photo }) {
-  if (!photo.images.gallery || photo.images.gallery.length === 0) {
-    return (
-      <ErrorDisplay message="No gallery images are available for this item." />
-    );
-  }
-
-  return (
-    // Responsive grid with improved item styling
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-      {photo.images.gallery.map((image: string, index: number) => (
-        <div
-          key={index}
-          className="group relative aspect-1 overflow-hidden rounded-lg border border-gray-200 shadow-sm transition duration-200 ease-in-out hover:shadow-lg" // aspect-1 for square
-        >
-          <Image
-            src={image}
-            alt={`${photo.title} - Gallery Image ${index + 1}`}
-            fill
-            style={{ objectFit: "cover" }} // Cover fills the square space
-            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="bg-gray-100 transition-transform duration-300 ease-in-out group-hover:scale-105" // Subtle zoom on hover
-          />
-          {/* Optional: Add overlay or icon on hover */}
         </div>
-      ))}
+      </main>
     </div>
   );
 }
 
-// Component for art styles comparison
-function ArtStylesPhoto({ photo }: { photo: Photo }) {
-  const searchParams = useSearchParams();
-  const styleParam = searchParams.get("style");
-
-  const availableStyleIds =
-    photo.images.artStyles?.map((style) => style.id) || [];
-
-  const [selectedStyleId, setSelectedStyleId] = useState<string | null>(() => {
-    if (styleParam && availableStyleIds.includes(styleParam)) {
-      return styleParam;
-    }
-    return availableStyleIds.length > 0 ? availableStyleIds[0] : null;
-  });
-
-  // Effect to sync with URL parameters (e.g., back/forward buttons)
-  useEffect(() => {
-    const currentStyleParam = searchParams.get("style");
-    if (currentStyleParam && availableStyleIds.includes(currentStyleParam)) {
-      if (currentStyleParam !== selectedStyleId) {
-        setSelectedStyleId(currentStyleParam);
-      }
-    } else if (
-      !currentStyleParam &&
-      selectedStyleId !== null &&
-      availableStyleIds.length > 0
-    ) {
-      // Optional: Reset to default if URL param is removed?
-      // if (selectedStyleId !== availableStyleIds[0]) {
-      //    setSelectedStyleId(availableStyleIds[0]);
-      // }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams.toString(), JSON.stringify(availableStyleIds)]);
-
-  if (
-    !photo.images.artStyles ||
-    photo.images.artStyles.length === 0 ||
-    !photo.images.original
-  ) {
-    return (
-      <ErrorDisplay message="Art styles or the original image are missing for comparison." />
-    );
-  }
-
-  const currentStyle = photo.images.artStyles.find(
-    (style) => style.id === selectedStyleId
-  );
-
-  if (!currentStyle) {
-    // Should ideally not happen with the improved state initialization
-    return <ErrorDisplay message="Could not find the selected art style." />;
-  }
-
-  // Function to update state and URL (using replaceState)
-  const handleStyleSelect = (styleId: string) => {
-    setSelectedStyleId(styleId);
-    const current = new URLSearchParams(Array.from(searchParams.entries()));
-    current.set("style", styleId);
-    const search = current.toString();
-    const query = search ? `?${search}` : "";
-    // Replace state doesn't add to browser history, good for toggles
-    window.history.replaceState({}, "", `${window.location.pathname}${query}`);
-  };
-
-  return (
-    <div className="flex flex-col space-y-6">
-      <div className="max-w-full mx-auto">
-        <ImageComparisonSlider
-          imageBefore={photo.images.original}
-          imageAfter={currentStyle.imagePath}
-          altBefore={`${photo.title} - Original`}
-          altAfter={`${photo.title} - ${currentStyle.name} Style`}
-          aspectRatio={photo.aspectRatio || "16 / 9"} // Key for maintaining size ratio
-        />
-      </div>
-
-      {/* Art Style Selector Buttons: Compact styling */}
-      <div className="flex flex-wrap justify-center gap-2">
-        {photo.images.artStyles.map((style) => (
-          <button
-            key={style.id}
-            onClick={() => handleStyleSelect(style.id)}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-all duration-150 ease-in-out border focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-blue-400 ${
-              currentStyle.id === style.id
-                ? "border-blue-600 bg-blue-600 text-white shadow-sm" // Selected style
-                : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400" // Non-selected style
-            }`}
-            aria-pressed={currentStyle.id === style.id}
-          >
-            {style.name}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
