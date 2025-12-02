@@ -138,9 +138,9 @@ export default function PhotoPage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-black selection:text-white">
-      <main className="pt-8 pb-8 md:pt-16 md:pb-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+      <main className="pt-8 pb-16 md:pt-16 md:pb-24 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
         {/* Back to Gallery Link */}
-        <div className="mb-6">
+        <div className="mb-8">
           <Link
             href="/photos"
             className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-black transition-colors"
@@ -155,59 +155,14 @@ export default function PhotoPage() {
         {/* Main Content */}
         <div className="max-w-4xl mx-auto">
 
-          {/* Header Section */}
-          <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
-            <div className="space-y-1.5">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">{photo.title}</h1>
-              <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
-                <span>{new Date(photo.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                {photo.location && (
-                  <>
-                    <span className="w-0.5 h-0.5 rounded-full bg-gray-300"></span>
-                    <span>{photo.location}</span>
-                  </>
-                )}
-              </div>
-              {photo.description && (
-                <p className="text-sm sm:text-base text-gray-600 max-w-xl pt-1 leading-relaxed">
-                  {photo.description}
-                </p>
-              )}
-
-              {/* Camera Metadata (if available) */}
-              {(photo.metadata?.camera || photo.metadata?.lens || photo.metadata?.film) && (
-                <div className="flex flex-wrap gap-2 pt-1.5 text-[10px] sm:text-xs text-gray-400 font-mono">
-                  {photo.metadata.camera && <span>📷 {photo.metadata.camera}</span>}
-                  {photo.metadata.lens && <span>◎ {photo.metadata.lens}</span>}
-                  {photo.metadata.film && <span>🎞️ {photo.metadata.film}</span>}
-                </div>
-              )}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2 shrink-0 mt-2 md:mt-0">
-              <button
-                onClick={handleDownloadAll}
-                disabled={downloading}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-900 rounded-full text-xs font-medium transition-colors disabled:opacity-50"
-                title="Download All Assets"
-              >
-                {downloading ? (
-                  <div className="w-3.5 h-3.5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-                    <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" />
-                    <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
-                  </svg>
-                )}
-                Download All
-              </button>
-            </div>
+          {/* Title Section */}
+          <div className="mb-6">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">{photo.title}</h1>
           </div>
 
           {/* Comparison Slider */}
-          <div className="mb-8 md:mb-12">
-            <div className="max-w-3xl mx-auto max-h-[80vh] rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-gray-50">
+          <div className="mb-6">
+            <div className="max-w-4xl mx-auto max-h-[85vh] rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-gray-50">
               {photo.images.original && currentStyle ? (
                 <ImageComparisonSlider
                   imageBefore={photo.images.original}
@@ -227,13 +182,13 @@ export default function PhotoPage() {
                 </div>
               )}
             </div>
-            
+
             {/* Video Controls and Slider Hint */}
             <div className="mt-2 flex items-center justify-between">
               <p className="text-[10px] text-gray-400 uppercase tracking-widest font-medium">
                 Drag slider to compare
               </p>
-              
+
               {photo.images.video && (
                 <button
                   onClick={() => setIsVideoPlaying(!isVideoPlaying)}
@@ -260,8 +215,29 @@ export default function PhotoPage() {
             </div>
           </div>
 
+          {/* Date & Location */}
+          <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-10">
+            <span>{new Date(photo.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+            {photo.location && (
+              <>
+                <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(photo.location)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 hover:text-blue-600 hover:underline transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                    <path fillRule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.45-.96 2.337-1.774 1.775-1.626 3.794-4.02 3.794-6.577 0-3.866-3.134-7-7-7s-7 3.134-7 7c0 2.557 2.019 4.951 3.794 6.577.887.814 1.717 1.39 2.337 1.774.311.192.571.337.757.433a5.744 5.744 0 00.299.148l.006.003.002.001zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                  </svg>
+                  {photo.location}
+                </a>
+              </>
+            )}
+          </div>
+
           {/* Art Styles Grid */}
-          <div className="space-y-6">
+          <div className="space-y-6 mb-10">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <h2 className="text-lg font-bold text-gray-900">Art Styles</h2>
               <span className="text-xs text-gray-500">{photo.images.artStyles.length} styles</span>
@@ -303,6 +279,38 @@ export default function PhotoPage() {
               ))}
             </div>
           </div>
+
+          {/* Description & Metadata */}
+          <div className="max-w-2xl">
+            {photo.description && (
+              <p className="text-base text-gray-600 leading-relaxed mb-4">
+                {photo.description}
+              </p>
+            )}
+
+            {/* Camera Metadata */}
+          </div>
+
+          {/* Inconspicuous Download Button */}
+          <div className="mt-16 pt-8 border-t border-gray-100 flex justify-center">
+            <button
+              onClick={handleDownloadAll}
+              disabled={downloading}
+              className="group flex items-center gap-2 px-4 py-2 text-gray-400 hover:text-gray-900 text-xs font-medium transition-colors disabled:opacity-50"
+              title="Download All Assets"
+            >
+              {downloading ? (
+                <div className="w-3.5 h-3.5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 group-hover:scale-110 transition-transform">
+                  <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" />
+                  <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
+                </svg>
+              )}
+              <span className="underline underline-offset-4 decoration-transparent group-hover:decoration-gray-300 transition-all">Download Assets</span>
+            </button>
+          </div>
+
         </div>
       </main>
     </div>

@@ -17,7 +17,7 @@ export default function ManagePhotosPage() {
     }, []);
 
     async function fetchPhotos() {
-        const { data, error } = await supabase
+        const { data } = await supabase
             .from("photos")
             .select("*")
             .order("date", { ascending: false });
@@ -56,8 +56,7 @@ export default function ManagePhotosPage() {
             await deletePhoto(id);
             setPhotos(photos.filter(p => p.id !== id));
             setDeletingId(null);
-        } catch (error) {
-            console.error("Error deleting photo:", error);
+        } catch {
             alert("Failed to delete photo");
             setDeletingId(null);
         }

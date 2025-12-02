@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import ImageComparisonSlider from "@/components/photos/ImageComparisonSlider";
 import imageCompression from "browser-image-compression";
-import { extractFrameFromVideo, generateVideoThumbnails } from "@/lib/video-utils";
+import { generateVideoThumbnails } from "@/lib/video-utils";
 
 interface PhotoFormProps {
     initialPhoto?: Photo;
@@ -29,7 +29,7 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
     const [aspectRatio, setAspectRatio] = useState(initialPhoto?.aspectRatio || "16 / 9");
     const [objectPosition, setObjectPosition] = useState(initialPhoto?.objectPosition || "50% 50%");
     // Metadata removed as per request, but keeping state if we need to re-add later or for DB compatibility
-    const [metadata, setMetadata] = useState(initialPhoto?.metadata || {});
+    const [metadata] = useState(initialPhoto?.metadata || {});
 
     // Set date on client-side only
     useEffect(() => {
@@ -45,7 +45,7 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
     const [artStyles, setArtStyles] = useState<{ name: string; prompt: string; image: File | null; objectPosition?: string }[]>(
         initialPhoto?.images.artStyles?.map(style => ({
             name: style.name,
-            prompt: style.prompt,
+            prompt: style.prompt || "",
             image: null,
             objectPosition: style.objectPosition || "50% 50%"
         })) || []
@@ -254,7 +254,7 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
                         name: style.name,
                         prompt: style.prompt,
                         imagePath: styleUrl,
-                        objectPosition: (style as any).objectPosition || "50% 50%",
+                        objectPosition: (style as { objectPosition?: string }).objectPosition || "50% 50%",
                     });
                 }
             }
@@ -278,9 +278,9 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
 
             await addPhoto(photoData);
             router.push("/photos");
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
-            setError(err.message || "An error occurred");
+            setError(err instanceof Error ? err.message : "An error occurred");
         } finally {
             setLoading(false);
         }
@@ -381,7 +381,7 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
                                     {currentStyle?.prompt && (
                                         <div className="text-center mt-4 p-4 bg-gray-50 rounded-lg border border-gray-100">
                                             <p className="text-xs text-gray-500 italic">
-                                                "{currentStyle.prompt}"
+                                                &quot;{currentStyle.prompt}&quot;
                                             </p>
                                         </div>
                                     )}
@@ -435,8 +435,9 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
                         {/* Basic Info */}
                         <section className="space-y-5">
                             <div className="space-y-1.5">
-                                <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Title</label>
+                                <label htmlFor="title" className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Title</label>
                                 <input
+                                    id="title"
                                     type="text"
                                     required
                                     value={title}
@@ -448,8 +449,9 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
                             </div >
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Slug</label>
+                                    <label htmlFor="slug" className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Slug</label>
                                     <input
+                                        id="slug"
                                         type="text"
                                         required
                                         value={slug}
@@ -460,8 +462,9 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
                                     />
                                 </div >
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Date</label>
+                                    <label htmlFor="date" className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Date</label>
                                     <input
+                                        id="date"
                                         type="date"
                                         required
                                         value={date}
@@ -573,7 +576,7 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
 
                                         const targetPosition = alignmentTarget === "original"
                                             ? objectPosition
-                                            : (artStyles[alignmentTarget as number] as any).objectPosition || "50% 50%";
+                                            : (artStyles[alignmentTarget as number] as { objectPosition?: string }).objectPosition || "50% 50%";
 
                                         if (targetImage) {
                                             return (
@@ -594,7 +597,7 @@ export default function PhotoForm({ initialPhoto }: PhotoFormProps) {
                                                                 setObjectPosition(newPos);
                                                             } else {
                                                                 const newStyles = [...artStyles];
-                                                                (newStyles[alignmentTarget as number] as any).objectPosition = newPos;
+                                                                (newStyles[alignmentTarget as number] as { objectPosition?: string }).objectPosition = newPos;
                                                                 setArtStyles(newStyles);
                                                             }
                                                         }}

@@ -15,7 +15,7 @@ interface ImageComparisonSliderProps {
   objectPositionAfter?: string;
   videoSrc?: string;
   isVideoPlaying?: boolean;
-  onVideoPlayingChange?: (isPlaying: boolean) => void;
+  onVideoPlayingChange?: (playing: boolean) => void;
 }
 
 const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
@@ -30,7 +30,6 @@ const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
   objectPositionAfter,
   videoSrc,
   isVideoPlaying = false,
-  onVideoPlayingChange,
 }) => {
   const [sliderPosition, setSliderPosition] = useState<number>(50);
   const [isDragging, setIsDragging] = useState<boolean>(false);

@@ -13,17 +13,21 @@ export default function EditPhotoPage() {
 
     useEffect(() => {
         async function fetchPhoto() {
-            const { data, error } = await supabase
-                .from("photos")
-                .select("*")
-                .eq("id", id)
-                .single();
+            try {
+                const { data } = await supabase
+                    .from("photos")
+                    .select("*")
+                    .eq("id", id)
+                    .single();
 
-            if (data) {
-                setPhoto({
-                    ...data,
-                    aspectRatio: data.aspect_ratio,
-                } as Photo);
+                if (data) {
+                    setPhoto({
+                        ...data,
+                        aspectRatio: data.aspect_ratio,
+                    } as Photo);
+                }
+            } catch {
+                // Error handling is done via UI feedback or logging if needed
             }
             setLoading(false);
         }

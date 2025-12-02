@@ -18,7 +18,7 @@ export interface Sticker {
 export interface ArtStyle {
   id: string;
   name: string;
-  prompt: string;
+  prompt?: string;
   imagePath: string;
   objectPosition?: string;
 }
@@ -38,8 +38,6 @@ export interface Photo {
   aspectRatio?: string;
   objectPosition?: string;
   metadata?: {
-    camera?: string;
-    lens?: string;
-    film?: string;
+    [key: string]: string;
   };
 }
