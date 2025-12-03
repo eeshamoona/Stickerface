@@ -80,6 +80,14 @@ export default function PhotosPage() {
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     />
                     <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/5" />
+                    {photo.images.video && (
+                      <div className="absolute bottom-3 right-3 bg-black/40 backdrop-blur-md text-white px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm border border-white/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
+                          <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-[10px] font-medium tracking-wide">Video</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-0.5">
