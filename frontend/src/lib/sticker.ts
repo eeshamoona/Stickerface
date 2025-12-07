@@ -41,6 +41,14 @@ export const stickers: Sticker[] = [
     type: "purrfect-timing",
     imageSrc: "/images/purrfect-timing.svg",
   },
+  {
+    id: "ride-the-bus",
+    name: "Ride the Bus",
+    description: "Can you make it to the end?",
+    color: "#4ADE80",
+    type: "ride-the-bus",
+    imageSrc: "/images/bus.svg",
+  },
 ];
 export const getSticker = (id: string): Sticker | undefined => {
   return stickers.find((sticker) => sticker.id === id);

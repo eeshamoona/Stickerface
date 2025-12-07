@@ -11,6 +11,7 @@ export interface Sticker {
   | "spell"
   | "perfect-day"
   | "button"
+  | "ride-the-bus"
   | "purrfect-timing";
   imageSrc: string;
 }
