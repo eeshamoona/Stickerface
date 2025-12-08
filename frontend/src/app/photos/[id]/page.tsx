@@ -175,6 +175,8 @@ export default function PhotoPage() {
                   videoSrc={photo.images.video}
                   isVideoPlaying={isVideoPlaying}
                   onVideoPlayingChange={setIsVideoPlaying}
+                  sizes="(max-width: 896px) 100vw, 896px"
+                  priority={true}
                 />
               ) : (
                 <div className="aspect-video flex items-center justify-center text-gray-400">

@@ -16,6 +16,8 @@ interface ImageComparisonSliderProps {
   videoSrc?: string;
   isVideoPlaying?: boolean;
   onVideoPlayingChange?: (playing: boolean) => void;
+  sizes?: string;
+  priority?: boolean;
 }
 
 const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
@@ -30,6 +32,8 @@ const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
   objectPositionAfter,
   videoSrc,
   isVideoPlaying = false,
+  sizes = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw",
+  priority = false,
 }) => {
   const [sliderPosition, setSliderPosition] = useState<number>(50);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -118,9 +122,9 @@ const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
           alt={altAfter}
           fill
           style={{ objectFit: "cover", objectPosition: objectPositionAfter || objectPosition }}
-          priority
+          priority={priority}
           draggable={false}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          sizes={sizes}
         />
       </div>
 
@@ -145,9 +149,9 @@ const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
             alt={altBefore}
             fill
             style={{ objectFit: "cover", objectPosition }}
-            priority
+            priority={priority}
             draggable={false}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            sizes={sizes}
           />
         )}
       </div>
