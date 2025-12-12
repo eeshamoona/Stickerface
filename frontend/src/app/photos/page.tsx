@@ -7,8 +7,12 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { getPhotos } from "../../lib/storage";
 import { Photo } from "../../types";
+import { Nunito } from "next/font/google";
+
+const nunito = Nunito({ subsets: ["latin"], weight: ["500", "600", "700"] });
 
 export const dynamic = 'force-dynamic';
+
 
 export default function PhotosPage() {
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -44,11 +48,11 @@ export default function PhotosPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold font-serif tracking-tight mb-2">
-            Gallery
+            <h1 className={`text-3xl md:text-4xl font-bold tracking-tight mb-2 text-indigo-900 ${nunito.className}`}>
+            Photos
           </h1>
           <p className="text-sm text-gray-500 max-w-lg mx-auto">
-            A collection of the best moments reimagined with image generation.
+            A collection of the best moments reimagined with image generation
           </p>
         </div>
 

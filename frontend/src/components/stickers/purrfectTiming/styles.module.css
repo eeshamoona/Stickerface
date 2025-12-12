@@ -57,9 +57,11 @@
   0% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.025);
   }
+
   100% {
     transform: scale(1);
   }
@@ -70,10 +72,12 @@
     transform: translateX(0) scale(1);
     opacity: 1;
   }
+
   30% {
     transform: translateX(-15px) scale(1.05);
     opacity: 1;
   }
+
   100% {
     transform: translateX(150px) scale(0.5);
     opacity: 0;
@@ -81,10 +85,12 @@
 }
 
 @keyframes textPulse {
+
   0%,
   100% {
     opacity: 0.7;
   }
+
   50% {
     opacity: 1;
   }
@@ -94,9 +100,11 @@
   0% {
     box-shadow: 0 0 0 0 rgba(216, 27, 96, 0.5);
   }
+
   70% {
     box-shadow: 0 0 0 25px rgba(216, 27, 96, 0);
   }
+
   100% {
     box-shadow: 0 0 0 0 rgba(216, 27, 96, 0);
   }
@@ -107,6 +115,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -114,21 +123,25 @@
 }
 
 @keyframes wave {
+
   0%,
   60%,
   100% {
     transform: initial;
   }
+
   30% {
     transform: translateY(-6px);
   }
 }
 
 @keyframes cozyShake {
+
   0%,
   100% {
     transform: translateX(0);
   }
+
   10%,
   30%,
   50%,
@@ -136,6 +149,7 @@
   90% {
     transform: translateX(-2px);
   }
+
   20%,
   40%,
   60%,
@@ -157,7 +171,7 @@
 .gameTitle {
   font-size: 1.8rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   color: var(--bed-purple);
   order: 0;
   flex-shrink: 0;
@@ -266,10 +280,14 @@
   -webkit-touch-callout: none;
 
   /* Prevent text selection */
-  -webkit-user-select: none; /* Safari */
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* Internet Explorer/Edge */
-  user-select: none; /* Standard */
+  -webkit-user-select: none;
+  /* Safari */
+  -moz-user-select: none;
+  /* Firefox */
+  -ms-user-select: none;
+  /* Internet Explorer/Edge */
+  user-select: none;
+  /* Standard */
 
   /* Optional: Make it clear it's interactive */
   cursor: pointer;
@@ -364,6 +382,7 @@
   order: 4;
   width: 100%;
   padding-top: 1rem;
+  padding-bottom: 1rem;
   border-top: 1px solid #eee;
   display: flex;
   justify-content: space-around;
