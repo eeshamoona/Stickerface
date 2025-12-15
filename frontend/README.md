@@ -35,6 +35,11 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
+## Party Tracker Mode 🎉
+
+The app features a live "Party Tracker" with leaderboards, betting, and NFC integration.
+For full documentation on setting up NFC tags and running the party, see **[PARTY_README.md](./PARTY_README.md)**.
+
 ## Photos Page Features
 
 The application now includes a comprehensive Photos management system:
