@@ -89,6 +89,19 @@ async function getMetricCount(
         return count || 0;
     }
 
+    // 3. Handle "total_spills"
+    if (key === 'total_spills') {
+        const { count, error } = await supabase
+            .from('party_actions')
+            .select('*', { count: 'exact', head: true })
+            .eq('action_type', 'SPILL')
+            .gte('created_at', startTime)
+            .lte('created_at', endTime);
+
+        if (error) throw error;
+        return count || 0;
+    }
+
     // 3. Handle "{name}_drinks"
     if (key.endsWith('_drinks')) {
         const namePart = key.replace('_drinks', '');

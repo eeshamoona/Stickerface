@@ -139,6 +139,7 @@ export default function PartyPage() {
     const bottlesCount = guests.reduce((acc, g) => acc + (Number(g.stats?.bottles) || 0), 0);
     const gamesCount = guests.reduce((acc, g) => acc + (Number(g.stats?.games) || 0), 0);
     const bowlsCount = guests.reduce((acc, g) => acc + (Number(g.stats?.bowls) || 0), 0);
+    const spillsCount = guests.reduce((acc, g) => acc + (Number(g.stats?.spills) || 0), 0);
 
     if (authLoading) return null;
 
@@ -164,7 +165,7 @@ export default function PartyPage() {
                 </div>
 
                 {/* Global Stats Ticker */}
-                <div className="grid grid-cols-3 gap-2 mb-4">
+                <div className="grid grid-cols-4 gap-2 mb-4">
                     <div className="bg-yellow-50 border border-yellow-100 p-2 rounded-lg text-center">
                         <span className="text-xl font-black text-yellow-900">{bottlesCount}</span>
                         <div className="text-[9px] font-bold text-yellow-700 uppercase tracking-wider">Bottles</div>
@@ -176,6 +177,10 @@ export default function PartyPage() {
                     <div className="bg-green-50 border border-green-100 p-2 rounded-lg text-center">
                         <span className="text-xl font-black text-green-900">{bowlsCount}</span>
                         <div className="text-[9px] font-bold text-green-700 uppercase tracking-wider">Bowls</div>
+                    </div>
+                    <div className="bg-orange-50 border border-orange-100 p-2 rounded-lg text-center">
+                        <span className="text-xl font-black text-orange-900">{spillsCount}</span>
+                        <div className="text-[9px] font-bold text-orange-700 uppercase tracking-wider">Spills</div>
                     </div>
                 </div>
 

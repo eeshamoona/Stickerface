@@ -25,9 +25,12 @@ export default function ResultsPage() {
             actuals['bottles'] = guests.reduce((sum, g) => sum + (Number(g.stats?.bottles) || 0), 0);
             actuals['games'] = guests.reduce((sum, g) => sum + (Number(g.stats?.games) || 0), 0);
             actuals['bowls'] = guests.reduce((sum, g) => sum + (Number(g.stats?.bowls) || 0), 0);
+            actuals['spills'] = guests.reduce((sum, g) => sum + (Number(g.stats?.spills) || 0), 0);
+
             actuals['total_bottles'] = actuals['bottles'];
             actuals['games_played'] = actuals['games'];
             actuals['total_bowls'] = actuals['bowls'];
+            actuals['total_spills'] = actuals['spills'];
 
             setGlobalStats(actuals);
 
@@ -103,7 +106,7 @@ export default function ResultsPage() {
 
                 {/* 1. Global Ticker */}
                 <section>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                         <div className="bg-white border border-yellow-100 p-4 rounded-2xl shadow-sm text-center">
                             <span className="text-4xl font-black text-yellow-400 block mb-1">{globalStats.bottles}</span>
                             <span className="text-[10px] uppercase font-bold text-gray-400">Bottles Emptied</span>
@@ -115,6 +118,10 @@ export default function ResultsPage() {
                         <div className="bg-white border border-green-100 p-4 rounded-2xl shadow-sm text-center">
                             <span className="text-4xl font-black text-green-400 block mb-1">{globalStats.bowls}</span>
                             <span className="text-[10px] uppercase font-bold text-gray-400">Bowls Smoked</span>
+                        </div>
+                        <div className="bg-white border border-orange-100 p-4 rounded-2xl shadow-sm text-center">
+                            <span className="text-4xl font-black text-orange-400 block mb-1">{globalStats.spills}</span>
+                            <span className="text-[10px] uppercase font-bold text-gray-400">Spills</span>
                         </div>
                     </div>
                 </section>

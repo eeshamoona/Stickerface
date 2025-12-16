@@ -17,6 +17,7 @@ interface GuestStats {
 interface GlobalStats {
     total_bottles: number;
     games_played: number;
+    total_spills: number;
 }
 
 interface PartyStatsData {
@@ -62,6 +63,10 @@ export function PartyStats({ data, loading }: PartyStatsProps) {
                     <div className="text-3xl font-bold text-purple-500">{data.global.games_played}</div>
                     <div className="text-xs text-gray-400 uppercase tracking-wider font-bold">Games</div>
                 </div>
+                <div className="bg-gray-800 rounded-xl p-4 text-center border border-gray-700">
+                    <div className="text-3xl font-bold text-orange-500">{data.global.total_spills}</div>
+                    <div className="text-xs text-gray-400 uppercase tracking-wider font-bold">Spills</div>
+                </div>
             </div>
 
             {/* Leaderboard */}
@@ -79,8 +84,8 @@ export function PartyStats({ data, loading }: PartyStatsProps) {
                         >
                             <div className="flex items-center space-x-3">
                                 <div className={`w-8 h-8 flex items-center justify-center rounded-full font-bold ${index === 0 ? 'bg-yellow-500 text-black' :
-                                        index === 1 ? 'bg-gray-400 text-black' :
-                                            index === 2 ? 'bg-orange-700 text-white' : 'bg-gray-700 text-gray-400'
+                                    index === 1 ? 'bg-gray-400 text-black' :
+                                        index === 2 ? 'bg-orange-700 text-white' : 'bg-gray-700 text-gray-400'
                                     }`}>
                                     {index + 1}
                                 </div>

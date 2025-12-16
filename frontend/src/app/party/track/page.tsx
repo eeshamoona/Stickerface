@@ -84,13 +84,22 @@ function TrackContent() {
     }
 
     // Invalid Metric
-    if (!metric) {
+    const ALLOWED_METRICS = ['drinks', 'water', 'bottles', 'games', 'bowls', 'spills'];
+
+    // Invalid Metric
+    if (!metric || !ALLOWED_METRICS.includes(metric)) {
         return (
-            <div className="p-10 text-center">
-                <h1 className="text-red-500 text-xl font-bold">Invalid QR Code</h1>
-                <p className="text-gray-400 mt-2">Missing metric parameter.</p>
-                <button onClick={() => router.push('/party')} className="mt-6 bg-gray-800 px-6 py-3 rounded-lg">
-                    Go to Party Hub
+            <div className="p-10 text-center flex flex-col items-center justify-center min-h-screen">
+                <div className="text-6xl mb-4">🤔</div>
+                <h1 className="text-indigo-900 text-2xl font-black mb-2">Metric Not Found!</h1>
+                <p className="text-gray-500 mb-8 max-w-xs">
+                    This tracking link seems a bit wonky. We couldn&apos;t find the metric you&apos;re looking for.
+                </p>
+                <button
+                    onClick={() => router.push('/party')}
+                    className="bg-indigo-600 text-white font-bold py-4 px-8 rounded-xl shadow-lg shadow-indigo-200 active:scale-95 transition-transform"
+                >
+                    Back to Party Hub
                 </button>
             </div>
         );
@@ -138,7 +147,7 @@ function TrackContent() {
             </div>
 
             <div className="text-8xl mb-8 animate-bounce">
-                {metric === 'drinks' ? '🍺' : metric === 'water' ? '💧' : metric === 'bottles' ? '🍾' : metric === 'games' ? '🃏' : metric === 'bowls' ? '🍃' : '📈'}
+                {metric === 'drinks' ? '🍺' : metric === 'water' ? '💧' : metric === 'bottles' ? '🍾' : metric === 'games' ? '🃏' : metric === 'bowls' ? '🍃' : metric === 'spills' ? '⚠️' : '📈'}
             </div>
 
             <h1 className="text-3xl font-bold mb-2 text-center capitalize text-indigo-900">
@@ -156,7 +165,8 @@ function TrackContent() {
                 disabled={status === 'SAVING'}
                 className={`w-full py-6 mt-4 rounded-2xl font-black text-2xl shadow-xl transition-all active:scale-95 text-white ${metric === 'water' ? 'bg-blue-500 hover:bg-blue-600 shadow-blue-200' :
                     metric === 'bottles' ? 'bg-yellow-500 hover:bg-yellow-600 shadow-yellow-200 text-black' :
-                        'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200'
+                        metric === 'spills' ? 'bg-orange-500 hover:bg-orange-600 shadow-orange-200' :
+                            'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200'
                     }`}
             >
                 {status === 'SAVING' ? 'SAVING...' : 'YES, COUNT IT!'}

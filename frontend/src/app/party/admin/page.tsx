@@ -251,6 +251,15 @@ export default function AdminPage() {
                                             <button onClick={() => updateGuestStat(g.id, 'water', 1)} className="w-6 h-6 flex items-center justify-center bg-blue-100 rounded border border-blue-200 text-blue-600 shadow-sm active:scale-95">+</button>
                                         </div>
                                     </div>
+                                    {/* Spills */}
+                                    <div className="flex flex-col items-center">
+                                        <span className="text-[10px] text-gray-400 font-bold tracking-wider">SPILLS</span>
+                                        <div className="flex items-center bg-gray-50 rounded-lg p-1 border border-gray-200">
+                                            <button onClick={() => updateGuestStat(g.id, 'spills', -1)} className="w-6 h-6 flex items-center justify-center bg-white rounded border border-gray-300 text-red-500 shadow-sm active:scale-95">-</button>
+                                            <span className="w-8 text-center font-mono font-bold text-gray-800">{g.stats?.spills || 0}</span>
+                                            <button onClick={() => updateGuestStat(g.id, 'spills', 1)} className="w-6 h-6 flex items-center justify-center bg-orange-100 rounded border border-orange-200 text-orange-600 shadow-sm active:scale-95">+</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         ))}
