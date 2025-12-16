@@ -3,10 +3,28 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
+interface BetResult {
+    id: string;
+    guestName: string;
+    question: string;
+    prediction: string;
+    actual: number;
+    line: number;
+    isWin: boolean;
+}
+
+interface Award {
+    title: string;
+    icon: string;
+    guest: { name: string; stats: Record<string, number> };
+    stat: string;
+    color: string;
+}
+
 export default function ResultsPage() {
-    const [betResults, setBetResults] = useState<any[]>([]);
-    const [globalStats, setGlobalStats] = useState<any>({});
-    const [awards, setAwards] = useState<any[]>([]);
+    const [betResults, setBetResults] = useState<BetResult[]>([]);
+    const [globalStats, setGlobalStats] = useState<Record<string, number>>({});
+    const [awards, setAwards] = useState<Award[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -50,7 +68,7 @@ export default function ResultsPage() {
             setAwards(awardsData);
 
             // 4. Calculate Bets
-            const results: any[] = [];
+            const results: BetResult[] = [];
             guests.forEach(guest => {
                 if (!guest.my_bets) return;
                 questions.forEach(q => {

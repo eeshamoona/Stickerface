@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { FaBus, FaTrophy, FaRedo, FaInfoCircle, FaPlay, FaExclamationCircle, FaCheckCircle, FaList, FaBug, FaPalette, FaChartBar, FaSkull, FaTimes, FaArrowUp, FaArrowDown, FaDivide } from "react-icons/fa";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { FaBus, FaTrophy, FaInfoCircle, FaPlay, FaCheckCircle, FaList, FaBug, FaPalette, FaSkull, FaTimes, FaArrowUp, FaArrowDown } from "react-icons/fa";
 import { supabase } from "@/lib/supabase";
 
 // --- TYPES & CONSTANTS ---
@@ -82,7 +82,6 @@ const CardView = ({
     card,
     isFaceUp,
     isCurrent,
-    index,
 }: {
     card: Card | null;
     isFaceUp: boolean;
@@ -135,7 +134,17 @@ const CardView = ({
     );
 };
 
-const GameButton = ({ label, onClick, colorClass, subLabel, icon, odds, isRainbow = false }: any) => (
+interface GameButtonProps {
+    label: string;
+    onClick: () => void;
+    colorClass: string;
+    subLabel?: string;
+    icon?: React.ReactNode;
+    odds?: number;
+    isRainbow?: boolean;
+}
+
+const GameButton = ({ label, onClick, colorClass, subLabel, icon, odds, isRainbow = false }: GameButtonProps) => (
     <button
         onClick={onClick}
         className={`
@@ -185,7 +194,7 @@ export default function RideTheBusSticker() {
 
     // Tie Breaker
     const startTimeRef = useRef<number>(0);
-    const [finalDuration, setFinalDuration] = useState(0);
+    // const [finalDuration, setFinalDuration] = useState(0);
 
     // Leaderboard State
     const [bestLeaderboard, setBestLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -272,14 +281,7 @@ export default function RideTheBusSticker() {
         }
     }, [view]);
 
-    // Calculate odds when game state changes
-    useEffect(() => {
-        if (view === "game" && deck.length > 0) {
-            calculateOdds();
-        }
-    }, [step, deck, view, activeCards]);
-
-    const calculateOdds = () => {
+    const calculateOdds = useCallback(() => {
         const revealedIds = new Set(activeCards.slice(0, step).filter(c => c !== null).map(c => c!.id));
         const unknownCards = deck.filter(c => !revealedIds.has(c.id));
         const total = unknownCards.length;
@@ -339,7 +341,14 @@ export default function RideTheBusSticker() {
             }
         }
         setOdds(newOdds);
-    };
+    }, [activeCards, deck, step]);
+
+    // Calculate odds when game state changes
+    useEffect(() => {
+        if (view === "game" && deck.length > 0) {
+            calculateOdds();
+        }
+    }, [step, deck, view, activeCards, calculateOdds]);
 
     const trackCard = (card: Card) => {
         setStats(prev => ({
@@ -472,7 +481,7 @@ export default function RideTheBusSticker() {
             setFlashColor(null);
             if (step === 3) {
                 // Victory!
-                setFinalDuration(Date.now() - startTimeRef.current);
+                // setFinalDuration(Date.now() - startTimeRef.current);
                 setView("result");
             } else {
                 setStep((s) => s + 1);
@@ -480,7 +489,7 @@ export default function RideTheBusSticker() {
         }, 600);
     };
 
-    const handleGuess = (type: string, payload?: any) => {
+    const handleGuess = (type: string, payload?: string) => {
         if (step < 0 || revealFailure) return; // Prevent clicking during reset
         const currentCard = activeCards[step];
         if (!currentCard) return;
@@ -637,7 +646,7 @@ export default function RideTheBusSticker() {
         const stepFailures = stats.stepFailures;
         const maxFailures = Math.max(...stepFailures);
         const worstStepIndex = stepFailures.indexOf(maxFailures);
-        const worstStepName = ["Color", "High/Low", "In/Out", "Suit"][worstStepIndex];
+        // const worstStepName = ["Color", "High/Low", "In/Out", "Suit"][worstStepIndex];
 
         return {
             totalAnswers,
@@ -870,17 +879,19 @@ export default function RideTheBusSticker() {
                                 </div>
                             </div>
 
-                            {/* Debug Toggle */}
-                            <div className="group relative ml-2">
-                                <button onClick={() => setDebugMode(!debugMode)} className={`text-lg transition-colors ${debugMode ? "text-red-500" : "text-slate-200 hover:text-slate-400"}`}>
-                                    <FaBug />
-                                </button>
-                                {debugMode && (
-                                    <div className="absolute right-0 top-8 w-max bg-red-100 text-red-800 text-[10px] font-bold p-2 rounded-md shadow-lg border border-red-200 z-50">
-                                        CHEAT: {getCheatAnswer()}
-                                    </div>
-                                )}
-                            </div>
+                            {/* Debug Toggle - Only visible if NEXT_PUBLIC_DEBUG is true */}
+                            {process.env.NEXT_PUBLIC_DEBUG === "true" && (
+                                <div className="group relative ml-2">
+                                    <button onClick={() => setDebugMode(!debugMode)} className={`text-lg transition-colors ${debugMode ? "text-red-500" : "text-slate-200 hover:text-slate-400"}`}>
+                                        <FaBug />
+                                    </button>
+                                    {debugMode && (
+                                        <div className="absolute right-0 top-8 w-max bg-red-100 text-red-800 text-[10px] font-bold p-2 rounded-md shadow-lg border border-red-200 z-50">
+                                            CHEAT: {getCheatAnswer()}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Evaluation Area */}

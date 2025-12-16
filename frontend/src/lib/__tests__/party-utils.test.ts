@@ -7,8 +7,6 @@ describe('getCurrentPartySession', () => {
         const { start_time, end_time } = getCurrentPartySession(mockNow);
 
         // Expected: Start Dec 14th 8:00 AM, End Dec 15th 7:59:59 AM
-        const expectedStart = new Date('2025-12-14T08:00:00').toISOString();
-        const expectedEnd = new Date('2025-12-15T07:59:59.999').toISOString(); // Approximation check for ISO string might need loose match or exact construction
 
         // We can rely on exact string matching if we constructed it carefully
         // Adjusting for local time zone execution: The function uses local time methods (getHours).

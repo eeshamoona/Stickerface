@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { usePartyAuth } from '@/context/PartyAuthContext';
 import { GuestSelector } from '@/components/party/GuestSelector';
@@ -49,15 +49,16 @@ function TrackContent() {
             sessionStorage.setItem(`last_track_${metric}`, now.toString());
             setStatus('SUCCESS');
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Tracking error:', err);
             setStatus('ERROR');
-            setErrorMessage(err.message || 'Failed to save.');
+            const msg = err instanceof Error ? err.message : 'Failed to save.';
+            setErrorMessage(msg);
         }
     };
 
     const handleClose = () => {
-        try { window.close(); } catch (e) { }
+        try { window.close(); } catch { }
         const btn = document.getElementById('close-btn');
         if (btn) btn.innerText = "Done! You can close this tab now.";
     };

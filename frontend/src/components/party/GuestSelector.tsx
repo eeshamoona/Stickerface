@@ -28,9 +28,10 @@ export function GuestSelector({ onSelect }: GuestSelectorProps) {
 
                 if (error) throw error;
                 setGuests(data || []);
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error('Error fetching guests:', err);
-                setError(err.message);
+                const msg = err instanceof Error ? err.message : 'Unknown error';
+                setError(msg);
             } finally {
                 setLoading(false);
             }
@@ -66,6 +67,7 @@ export function GuestSelector({ onSelect }: GuestSelectorProps) {
                 >
                     <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 mb-3 border-2 border-transparent hover:border-indigo-500 transition-colors shadow-sm">
                         {guest.avatar_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                                 src={guest.avatar_url}
                                 alt={guest.name}

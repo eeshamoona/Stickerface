@@ -1,14 +1,29 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+
+interface Question {
+    id: string;
+    question: string;
+    metric_key: string;
+    line: number;
+    created_at: string;
+}
+
+interface Guest {
+    id: string;
+    name: string;
+    stats: Record<string, number>;
+    is_bets_locked: boolean;
+}
 
 export default function AdminPage() {
     const [pin, setPin] = useState('');
     const [unlocked, setUnlocked] = useState(false);
 
-    const [questions, setQuestions] = useState<any[]>([]);
-    const [guests, setGuests] = useState<any[]>([]);
+    const [questions, setQuestions] = useState<Question[]>([]);
+    const [guests, setGuests] = useState<Guest[]>([]);
 
     // New Question Form
     const [newQ, setNewQ] = useState({ question: '', metric_key: 'total_bottles', line: 5.5 });
@@ -42,7 +57,7 @@ export default function AdminPage() {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editingLine, setEditingLine] = useState<number>(0);
 
-    const startEditing = (q: any) => {
+    const startEditing = (q: Question) => {
         setEditingId(q.id);
         setEditingLine(q.line);
     };
@@ -185,9 +200,9 @@ export default function AdminPage() {
                         <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl flex flex-col items-center">
                             <span className="text-xs font-bold text-yellow-800 uppercase tracking-widest mb-2">Total Bottles</span>
                             <div className="flex items-center space-x-4">
-                                <button onClick={() => updateGuestStat(guests.find(g => g.name === 'Jordan').id, 'bottles', -1)} className="w-10 h-10 rounded-full bg-white border border-yellow-300 text-yellow-600 font-black shadow-sm flex items-center justify-center active:scale-95">-</button>
+                                <button onClick={() => updateGuestStat(guests.find(g => g.name === 'Jordan')!.id, 'bottles', -1)} className="w-10 h-10 rounded-full bg-white border border-yellow-300 text-yellow-600 font-black shadow-sm flex items-center justify-center active:scale-95">-</button>
                                 <span className="text-4xl font-black text-yellow-900">{guests.reduce((acc, g) => acc + (Number(g.stats?.bottles) || 0), 0)}</span>
-                                <button onClick={() => updateGuestStat(guests.find(g => g.name === 'Jordan').id, 'bottles', 1)} className="w-10 h-10 rounded-full bg-yellow-400 text-yellow-900 font-black shadow-md flex items-center justify-center active:scale-95">+</button>
+                                <button onClick={() => updateGuestStat(guests.find(g => g.name === 'Jordan')!.id, 'bottles', 1)} className="w-10 h-10 rounded-full bg-yellow-400 text-yellow-900 font-black shadow-md flex items-center justify-center active:scale-95">+</button>
                             </div>
                         </div>
                     )}
@@ -197,9 +212,9 @@ export default function AdminPage() {
                         <div className="bg-purple-50 border border-purple-200 p-4 rounded-xl flex flex-col items-center">
                             <span className="text-xs font-bold text-purple-800 uppercase tracking-widest mb-2">Games Played</span>
                             <div className="flex items-center space-x-4">
-                                <button onClick={() => updateGuestStat(guests.find(g => g.name === 'Victoria').id, 'games', -1)} className="w-10 h-10 rounded-full bg-white border border-purple-300 text-purple-600 font-black shadow-sm flex items-center justify-center active:scale-95">-</button>
+                                <button onClick={() => updateGuestStat(guests.find(g => g.name === 'Victoria')!.id, 'games', -1)} className="w-10 h-10 rounded-full bg-white border border-purple-300 text-purple-600 font-black shadow-sm flex items-center justify-center active:scale-95">-</button>
                                 <span className="text-4xl font-black text-purple-900">{guests.reduce((acc, g) => acc + (Number(g.stats?.games) || 0), 0)}</span>
-                                <button onClick={() => updateGuestStat(guests.find(g => g.name === 'Victoria').id, 'games', 1)} className="w-10 h-10 rounded-full bg-purple-400 text-white font-black shadow-md flex items-center justify-center active:scale-95">+</button>
+                                <button onClick={() => updateGuestStat(guests.find(g => g.name === 'Victoria')!.id, 'games', 1)} className="w-10 h-10 rounded-full bg-purple-400 text-white font-black shadow-md flex items-center justify-center active:scale-95">+</button>
                             </div>
                         </div>
                     )}
@@ -209,9 +224,9 @@ export default function AdminPage() {
                         <div className="bg-green-50 border border-green-200 p-4 rounded-xl flex flex-col items-center">
                             <span className="text-xs font-bold text-green-800 uppercase tracking-widest mb-2">Bowls</span>
                             <div className="flex items-center space-x-4">
-                                <button onClick={() => updateGuestStat(guests.find(g => g.name === 'Mando').id, 'bowls', -1)} className="w-10 h-10 rounded-full bg-white border border-green-300 text-green-600 font-black shadow-sm flex items-center justify-center active:scale-95">-</button>
+                                <button onClick={() => updateGuestStat(guests.find(g => g.name === 'Mando')!.id, 'bowls', -1)} className="w-10 h-10 rounded-full bg-white border border-green-300 text-green-600 font-black shadow-sm flex items-center justify-center active:scale-95">-</button>
                                 <span className="text-4xl font-black text-green-900">{guests.reduce((acc, g) => acc + (Number(g.stats?.bowls) || 0), 0)}</span>
-                                <button onClick={() => updateGuestStat(guests.find(g => g.name === 'Mando').id, 'bowls', 1)} className="w-10 h-10 rounded-full bg-green-400 text-white font-black shadow-md flex items-center justify-center active:scale-95">+</button>
+                                <button onClick={() => updateGuestStat(guests.find(g => g.name === 'Mando')!.id, 'bowls', 1)} className="w-10 h-10 rounded-full bg-green-400 text-white font-black shadow-md flex items-center justify-center active:scale-95">+</button>
                             </div>
                         </div>
                     )}
