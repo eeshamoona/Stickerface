@@ -1,286 +1,417 @@
-// src/components/stickers/FortuneSticker.tsx
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import { Engine, Render, World, Bodies, Body, Events, Mouse, MouseConstraint } from 'matter-js';
+import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  FaTree, FaLeaf, FaCloud, FaTint, FaSun, FaBolt,
+  FaHome, FaKey, FaGem, FaBook, FaAnchor, FaGift,
+  FaBug, FaFish, FaFeatherAlt, FaMagic, FaEye, FaMoon, FaCompass, FaRocket,
+  FaStar
+} from 'react-icons/fa';
+import Image from 'next/image';
 
-interface FortuneCookie {
-  body: Body;
-  opened: boolean;
-  fortune: string;
-  angle: number;
+// --- Types ---
+type GamePhase = 'intro' | 'tarot' | 'reveal';
+
+interface TarotCard {
+  id: string;
+  icon: React.ReactNode;
+  label: string;
+  vibe: 'soft' | 'sharp' | 'chaos';
 }
 
-const fortunes = [
-  "A beautiful, smart, and loving person will be coming into your life.",
-  "Your creativity will make you successful in a most unexpected way.",
-  "Your hard work is about to pay off. Remember, dreams are the seeds of reality.",
-  "The greatest risk is not taking one.",
-  "A dubious friend may be an enemy in camouflage.",
-  "A journey of a thousand miles begins with a single step.",
-  "You will travel to many exotic places.",
-  "Your ability to juggle many tasks will take you far.",
-  "The cure for boredom is curiosity.",
-  "Your smile lights up someone's day.",
-  "Embrace the glorious mess that you are.",
-  "A lifetime of happiness awaits you."
-];
+// Larger pools for randomization with Vibes
+const CARD_POOLS = {
+  Nature: [
+    { id: 'tree', icon: <FaTree />, label: 'Growth', vibe: 'soft' },
+    { id: 'flower', icon: <FaLeaf />, label: 'Beauty', vibe: 'soft' },
+    { id: 'cloud', icon: <FaCloud />, label: 'Change', vibe: 'soft' },
+    { id: 'water', icon: <FaTint />, label: 'Flow', vibe: 'soft' },
+    { id: 'sun', icon: <FaSun />, label: 'Energy', vibe: 'sharp' },
+    { id: 'bolt', icon: <FaBolt />, label: 'Power', vibe: 'chaos' },
+  ] as TarotCard[],
+  Objects: [
+    { id: 'house', icon: <FaHome />, label: 'Sanctuary', vibe: 'soft' },
+    { id: 'key', icon: <FaKey />, label: 'Discovery', vibe: 'sharp' },
+    { id: 'gem', icon: <FaGem />, label: 'Value', vibe: 'sharp' },
+    { id: 'book', icon: <FaBook />, label: 'Knowledge', vibe: 'soft' },
+    { id: 'gift', icon: <FaGift />, label: 'Surprise', vibe: 'soft' },
+    { id: 'anchor', icon: <FaAnchor />, label: 'Stability', vibe: 'sharp' },
+  ] as TarotCard[],
+  Signs: [
+    { id: 'bug', icon: <FaBug />, label: 'Resilience', vibe: 'soft' },
+    { id: 'fish', icon: <FaFish />, label: 'Abundance', vibe: 'soft' },
+    { id: 'feather', icon: <FaFeatherAlt />, label: 'Lightness', vibe: 'soft' },
+    { id: 'magic', icon: <FaMagic />, label: 'Potential', vibe: 'chaos' },
+    { id: 'eye', icon: <FaEye />, label: 'Vision', vibe: 'sharp' },
+    { id: 'moon', icon: <FaMoon />, label: 'Mystery', vibe: 'soft' },
+    { id: 'compass', icon: <FaCompass />, label: 'Direction', vibe: 'sharp' },
+    { id: 'rocket', icon: <FaRocket />, label: 'Future', vibe: 'chaos' },
+  ] as TarotCard[]
+};
 
+// Light theme colors matching the app
+const colors = {
+  primary: '#F4D03F',      // Fortune sticker color from lib/sticker.ts
+  accent: '#af90ff',       // Purple from purrfectTiming
+  textDark: '#3f3d56',
+  textLight: '#6f6d84',
+  bgLight: '#f4effb',
+  cardBg: '#fffbfe',
+  success: '#66bb6a',
+};
+
+// --- Helper: Get Random Cards ---
+const getRandomCards = (pool: TarotCard[], count: number) => {
+  const shuffled = [...pool].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+};
+
+// --- Component ---
 export default function FortuneSticker() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const engineRef = useRef<Engine | null>(null);
-  const renderRef = useRef<Render | null>(null);
-  const cookiesRef = useRef<FortuneCookie[]>([]);
-  const mouseConstraintRef = useRef<MouseConstraint | null>(null);
-  
-  const [openedFortune, setOpenedFortune] = useState<string | null>(null);
-  const [gameStarted, setGameStarted] = useState(false);
-  
-  // Initialize the physics engine
-  useEffect(() => {
-    if (!containerRef.current || !canvasRef.current || gameStarted) return;
-    
-    // Create engine
-    const engine = Engine.create({
-      gravity: { x: 0, y: 1, scale: 0.001 }
-    });
-    engineRef.current = engine;
-    
-    // Create renderer
-    const render = Render.create({
-      element: containerRef.current,
-      engine: engine,
-      canvas: canvasRef.current,
-      options: {
-        width: containerRef.current.clientWidth,
-        height: 400,
-        background: 'transparent',
-        wireframes: false
-      }
-    });
-    renderRef.current = render;
-    
-    // Add walls
-    const wallOptions = { 
-      isStatic: true, 
-      render: { 
-        fillStyle: 'transparent',
-        strokeStyle: 'rgba(255, 215, 0, 0.2)',
-        lineWidth: 1
-      }
-    };
-    
-    const width = containerRef.current.clientWidth;
-    const height = 400;
-    
-    World.add(engine.world, [
-      // Walls
-      Bodies.rectangle(width / 2, height + 50, width, 100, wallOptions), // Bottom
-      Bodies.rectangle(-50, height / 2, 100, height, wallOptions), // Left
-      Bodies.rectangle(width + 50, height / 2, 100, height, wallOptions) // Right
-    ]);
-    
-    // Add mouse control
-    const mouse = Mouse.create(render.canvas);
-    const mouseConstraint = MouseConstraint.create(engine, {
-      mouse: mouse,
-      constraint: {
-        stiffness: 0.2,
-        render: {
-          visible: false
-        }
-      }
-    });
-    mouseConstraintRef.current = mouseConstraint;
-    
-    World.add(engine.world, mouseConstraint);
-    
-    // Handle mouse clicks on fortune cookies
-    Events.on(mouseConstraint, 'mousedown', (event) => {
-      const mousePosition = event.mouse.position;
-      
-      for (let i = 0; i < cookiesRef.current.length; i++) {
-        const cookie = cookiesRef.current[i];
-        
-        if (cookie.opened) continue;
-        
-        // Check if the mouse click is on this cookie
-        const cookiePosition = cookie.body.position;
-        const distance = Math.sqrt(
-          Math.pow(mousePosition.x - cookiePosition.x, 2) + 
-          Math.pow(mousePosition.y - cookiePosition.y, 2)
-        );
-        
-        // If close enough to the cookie, "open" it
-        if (distance < 40) {
-          cookie.opened = true;
-          
-          // Apply a small upward force when opened
-          Body.applyForce(
-            cookie.body,
-            cookiePosition,
-            { x: 0, y: -0.05 }
-          );
-          
-          // Show the fortune
-          setOpenedFortune(cookie.fortune);
-          break;
-        }
-      }
-    });
-    
-    // Start the engine and renderer
-    Render.run(render);
-    
-    const runner = requestAnimationFrame(function animate() {
-      Engine.update(engine, 1000 / 60);
-      requestAnimationFrame(animate);
-    });
-    
-    // Cleanup function
-    return () => {
-      if (render) {
-        Render.stop(render);
-        World.clear(engine.world, false);
-        Engine.clear(engine);
-        render.canvas.remove();
-        cancelAnimationFrame(runner);
-      }
-    };
-  }, [gameStarted]);
-  
-  // Function to create and drop fortune cookies
-  const startGame = () => {
-    if (!engineRef.current || !renderRef.current || !containerRef.current) return;
-    
-    setGameStarted(true);
-    cookiesRef.current = [];
-    setOpenedFortune(null);
-    
-    // Create cookies with random positions at the top
-    const width = containerRef.current.clientWidth;
-    const cookieCount = Math.min(8, Math.floor(width / 50)); // Adjust number based on width
-    
-    for (let i = 0; i < cookieCount; i++) {
-      const x = (width / (cookieCount + 1)) * (i + 1);
-      const y = -50 - (Math.random() * 200); // Start above the visible area
-      
-      const fortune = fortunes[Math.floor(Math.random() * fortunes.length)];
-      const angle = Math.random() * Math.PI;
-      
-      // Create a fortune cookie shape (simplified as circle for now)
-      const cookie = Bodies.circle(x, y, 25, {
-        restitution: 0.6,
-        friction: 0.1,
-        frictionAir: 0.03,
-        render: {
-          sprite: {
-            texture: '/cookie-closed.svg', // This will be replaced with your SVG
-            xScale: 0.5,
-            yScale: 0.5
-          }
-        }
-      });
-      
-      // Random initial velocity
-      Body.setVelocity(cookie, { 
-        x: (Math.random() - 0.5) * 3, 
-        y: Math.random() * 2 
-      });
-      
-      // Random spin
-      Body.setAngularVelocity(cookie, (Math.random() - 0.5) * 0.1);
-      
-      World.add(engineRef.current.world, cookie);
-      
-      // Store the cookie with its fortune
-      cookiesRef.current.push({
-        body: cookie,
-        opened: false,
-        fortune,
-        angle
-      });
+  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [tarotSelections, setTarotSelections] = useState<TarotCard[]>([]);
+  const [fortune, setFortune] = useState<string | null>(null);
+  const [cookieState, setCookieState] = useState<'closed' | 'opened'>('closed');
+  const [currentRound, setCurrentRound] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // State for the random cards shown in each round
+  const [currentRoundCards, setCurrentRoundCards] = useState<TarotCard[]>([]);
+
+  // Function to prepare a round
+  const prepareRound = (roundIndex: number) => {
+    let pool: TarotCard[] = [];
+    if (roundIndex === 0) pool = CARD_POOLS.Nature;
+    else if (roundIndex === 1) pool = CARD_POOLS.Objects;
+    else pool = CARD_POOLS.Signs;
+
+    setCurrentRoundCards(getRandomCards(pool, 4));
+  };
+
+  // --- Intro ---
+  const handleStart = () => {
+    setTarotSelections([]);
+    setCurrentRound(0);
+    prepareRound(0);
+    setPhase('tarot');
+    setCookieState('closed');
+    setFortune(null);
+  };
+
+  // --- Tarot Selection ---
+  const handleTarotSelect = (card: TarotCard) => {
+    const newSelections = [...tarotSelections, card];
+    setTarotSelections(newSelections);
+
+    if (currentRound < 2) {
+      const nextRound = currentRound + 1;
+      setCurrentRound(nextRound);
+      prepareRound(nextRound);
+    } else {
+      setPhase('reveal');
+      generateFortune(newSelections);
     }
-    
-    // Update rendering to show fortune cookies
-    updateCookieRendering();
   };
-  
-  // Custom rendering function to draw fortune cookies
-  const updateCookieRendering = () => {
-    if (!renderRef.current || !cookiesRef.current.length) return;
-    
-    // This function could update the sprites or appearance based on the cookie state
-    // For now it's placeholder for when you have real SVGs
-    cookiesRef.current.forEach(cookie => {
-      if (cookie.opened) {
-        // Update appearance for opened cookie
-        cookie.body.render.sprite = {
-          texture: '/cookie-opened.svg', // Replace with your opened cookie SVG
-          xScale: 0.5,
-          yScale: 0.5
-        };
-      }
-    });
+
+  // --- Fortune Generation ---
+  const generateFortune = async (selections: TarotCard[]) => {
+    setIsLoading(true);
+    // Extract labels and vibes
+    const selectionData = selections.map(s => ({ label: s.label, vibe: s.vibe }));
+
+    try {
+      const res = await fetch('/api/fortune', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ selections: selectionData }),
+      });
+
+      const data = await res.json();
+      setFortune(data.fortune || "The mists reveal hidden treasures ahead.");
+    } catch (err) {
+      console.error('Fortune fetch error:', err);
+      setFortune("Trust your path—great things await.");
+    } finally {
+      setIsLoading(false);
+    }
   };
-  
+
+  // --- Retry / Reset ---
+  const handleRetry = () => {
+    handleStart();
+  };
+
+  // --- Typewriter Effect ---
+  const [displayedText, setDisplayedText] = useState("");
+
+  useEffect(() => {
+    if (cookieState === 'opened' && fortune) {
+      setDisplayedText(""); // Clear previous text
+      let currentLength = 0;
+
+      const interval = setInterval(() => {
+        currentLength++;
+        setDisplayedText(fortune.slice(0, currentLength));
+
+        if (currentLength >= fortune.length) {
+          clearInterval(interval);
+        }
+      }, 40);
+
+      return () => clearInterval(interval);
+    }
+  }, [cookieState, fortune]);
+
+  // --- Render ---
   return (
-    <div className="fortune-teller w-full flex flex-col items-center">
-      {/* SVG for closed and opened cookies - will be used as sprite textures */}
-      <div className="hidden">
-        {/* These SVGs would be referenced by the physics engine */}
-        <svg id="cookie-closed" width="100" height="100" viewBox="0 0 100 100">
-          <ellipse cx="50" cy="50" rx="45" ry="25" fill="#F5DEB3" stroke="#D2B48C" strokeWidth="2" />
-          <path d="M20,50 Q50,70 80,50" fill="none" stroke="#D2B48C" strokeWidth="2" />
-        </svg>
-        
-        <svg id="cookie-opened" width="100" height="100" viewBox="0 0 100 100">
-          <path d="M5,40 Q50,80 95,40" fill="#F5DEB3" stroke="#D2B48C" strokeWidth="2" />
-          <rect x="25" y="42" width="50" height="30" fill="white" stroke="#D2B48C" strokeWidth="1" />
-        </svg>
-      </div>
-      
-      {openedFortune && (
-        <div className="fortune-paper absolute z-10 p-4 bg-white text-black rounded shadow-lg max-w-md text-center transform -translate-y-20">
-          <p className="font-serif">{openedFortune}</p>
-        </div>
-      )}
-      
-      <div 
-        ref={containerRef} 
-        className="fortune-container relative w-full max-w-md h-96 bg-gray-900 rounded-lg overflow-hidden"
-      >
-        <canvas ref={canvasRef} />
-        
-        {!gameStarted && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 bg-opacity-80 z-10">
-            <div className="text-6xl mb-4">🥠</div>
-            <p className="text-center mb-4 text-white">Tap to drop fortune cookies!</p>
-            <button
-              onClick={startGame}
-              className="px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full transition"
+    <div
+      className="w-full h-full flex flex-col items-center relative overflow-hidden"
+      style={{
+        fontFamily: "'Quicksand', sans-serif",
+        backgroundColor: colors.bgLight,
+      }}
+    >
+      {/* Header */}
+      <header className="pt-6 pb-4 w-full text-center">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          key={phase}
+          className="space-y-1"
+        >
+          <h1
+            className="text-2xl font-bold"
+            style={{ color: colors.primary }}
+          >
+            Fortune Teller
+          </h1>
+          <p
+            className="text-sm"
+            style={{ color: colors.textLight }}
+          >
+            {phase === 'intro' && "Discover what fate holds for you"}
+            {phase === 'tarot' && `Choose your path (${currentRound + 1}/3)`}
+            {phase === 'reveal' && "Your fortune awaits"}
+          </p>
+        </motion.div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-grow w-full flex flex-col items-center justify-center px-6 pb-6">
+
+        <AnimatePresence mode="wait">
+          {/* INTRO PHASE */}
+          {phase === 'intro' && (
+            <motion.div
+              key="intro"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 1.1, opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              className="flex flex-col items-center text-center"
             >
-              Start
-            </button>
-          </div>
-        )}
-        
-        {gameStarted && (
-          <div className="absolute bottom-4 right-4 z-10">
-            <button
-              onClick={startGame}
-              className="px-4 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm rounded-full transition"
+              <div
+                className="mb-8 relative cursor-pointer group"
+                onClick={handleStart}
+              >
+                <div
+                  className="absolute inset-0 rounded-full blur-2xl opacity-40 group-hover:opacity-60 transition-opacity"
+                  style={{ backgroundColor: colors.primary }}
+                />
+                <FaStar
+                  className="text-6xl relative z-10 animate-pulse"
+                  style={{ color: colors.primary }}
+                />
+              </div>
+
+              <button
+                onClick={handleStart}
+                className="px-8 py-3 rounded-full font-semibold text-white transition-all hover:scale-105 active:scale-95 shadow-lg"
+                style={{ backgroundColor: colors.accent }}
+              >
+                Consult the Oracle
+              </button>
+
+              <p
+                className="mt-4 text-sm italic"
+                style={{ color: colors.textLight }}
+              >
+                Tap to begin your journey
+              </p>
+            </motion.div>
+          )}
+
+          {/* TAROT PHASE */}
+          {phase === 'tarot' && (
+            <motion.div
+              key="tarot"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -30 }}
+              transition={{ duration: 0.4 }}
+              className="w-full max-w-sm flex flex-col items-center"
             >
-              New Cookies
-            </button>
-          </div>
-        )}
-      </div>
-      
-      <div className="instructions mt-4 text-sm text-gray-400 text-center">
-        <p>Click on a fortune cookie to reveal your fortune!</p>
-      </div>
+              <motion.div
+                key={currentRound}
+                className="grid grid-cols-2 gap-3 w-full"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ staggerChildren: 0.1 }}
+              >
+                {currentRoundCards.map((card, idx) => (
+                  <motion.button
+                    key={card.id}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.08 }}
+                    onClick={() => handleTarotSelect(card)}
+                    className="aspect-[4/5] rounded-xl flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 active:scale-95 border-2 relative overflow-hidden"
+                    style={{
+                      backgroundColor: colors.cardBg,
+                      borderColor: 'transparent',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = colors.accent;
+                      e.currentTarget.style.boxShadow = `0 4px 20px ${colors.accent}40`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'transparent';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    <div
+                      className="text-4xl transition-colors relative z-10"
+                      style={{ color: colors.accent }}
+                    >
+                      {card.icon}
+                    </div>
+                    <span
+                      className="font-semibold text-sm uppercase tracking-wide relative z-10"
+                      style={{ color: colors.textDark }}
+                    >
+                      {card.label}
+                    </span>
+                  </motion.button>
+                ))}
+              </motion.div>
+
+              {/* Progress Dots */}
+              <div className="mt-6 flex gap-2">
+                {[0, 1, 2].map(i => (
+                  <div
+                    key={i}
+                    className="h-2 rounded-full transition-all duration-300"
+                    style={{
+                      width: i === currentRound ? '2rem' : '0.5rem',
+                      backgroundColor: i <= currentRound ? colors.accent : '#ddd',
+                    }}
+                  />
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* REVEAL PHASE */}
+          {phase === 'reveal' && (
+            <motion.div
+              key="reveal"
+              className="w-full flex flex-col items-center justify-center relative"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8 }}
+            >
+              {/* Fortune Paper */}
+              <AnimatePresence>
+                {cookieState === 'opened' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ delay: 0.2, duration: 0.5 }}
+                    className="w-full max-w-xs mb-6"
+                  >
+                    <div
+                      className="p-6 rounded-xl shadow-lg text-center relative"
+                      style={{
+                        backgroundColor: '#fffef7',
+                        border: '1px solid #f0e6d2',
+                      }}
+                    >
+                      {fortune && !isLoading ? (
+                        <>
+                          <p
+                            className="text-lg italic leading-relaxed mb-4"
+                            style={{ color: colors.textDark }}
+                          >
+                            &quot;{displayedText}&quot;
+                          </p>
+                          <div
+                            className="w-12 h-0.5 mx-auto mb-3"
+                            style={{ backgroundColor: colors.primary }}
+                          />
+                          <div className="flex justify-center gap-2 text-xs uppercase tracking-widest flex-wrap" style={{ color: colors.textLight }}>
+                            {tarotSelections.map(s => <span key={s.id}>{s.label}</span>)}
+                          </div>
+
+                          {/* RETRY BUTTON */}
+                          <motion.button
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 1 }}
+                            onClick={handleRetry}
+                            className="mt-6 text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full border border-purple-200 hover:bg-purple-50 transition-colors"
+                            style={{ color: colors.accent }}
+                          >
+                            Crack Another
+                          </motion.button>
+                        </>
+                      ) : (
+                        <div className="py-4 flex flex-col items-center gap-2">
+                          <FaStar className="animate-spin" style={{ color: colors.primary }} />
+                          <span className="text-sm" style={{ color: colors.textLight }}>Divining...</span>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Cookie */}
+              <motion.button
+                layout
+                onClick={() => {
+                  if (cookieState === 'closed') {
+                    setCookieState('opened');
+                  }
+                }}
+                disabled={cookieState === 'opened'}
+                className="relative w-48 h-48 focus:outline-none cursor-pointer group"
+              >
+                <div className={`relative w-full h-full transition-all duration-500 ${cookieState === 'opened' ? 'opacity-40 scale-75 translate-y-12 blur-[1px]' : 'hover:scale-105'}`}>
+                  <Image
+                    src={cookieState === 'closed' ? "/cookie-closed.svg" : "/cookie-opened.svg"}
+                    fill
+                    className="object-contain drop-shadow-lg"
+                    alt="Fortune Cookie"
+                  />
+                </div>
+
+                {cookieState === 'closed' && (
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1 }}
+                    className="absolute -bottom-6 left-0 right-0 text-center text-sm animate-pulse"
+                    style={{ color: colors.textLight }}
+                  >
+                    Tap to crack open
+                  </motion.p>
+                )}
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
     </div>
   );
 }

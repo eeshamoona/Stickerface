@@ -40,6 +40,20 @@ export default function RootLayout({
                   Stickerface
                 </Link>
               </div>
+              <nav className="flex gap-4 sm:gap-6">
+                <Link
+                  href="/sticker"
+                  className="text-sm sm:text-base font-medium text-gray-600 hover:text-indigo-600 transition-colors"
+                >
+                  Stickers
+                </Link>
+                <Link
+                  href="/photos"
+                  className="text-sm sm:text-base font-medium text-gray-600 hover:text-indigo-600 transition-colors"
+                >
+                  Photos
+                </Link>
+              </nav>
             </div>
           </div>
         </header>

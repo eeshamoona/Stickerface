@@ -1,93 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Stickerface
 
-## Getting Started
+Interactive stickers, party games, and digital artifacts for your personal space. Built with Next.js, Tailwind CSS, and Supabase.
 
-First, run the development server:
+## 🚀 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### 🎮 Minigames (Stickers)
+Stickerface features several interactive "stickers" or minigames:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+*   **Ride The Bus (`/sticker`)**: A card guessing game where you must "get off the bus" by guessing card properties (Red/Black, High/Low, In/Out, Suit). Features persistent stats and leaderboards.
+*   **Fortune Teller**: A mystical sticker that reveals your fortune.
+*   **Purrfect Timing**: A reaction game where you must pet the cat for the exact right amount of time.
+*   **Ghost Runner (404 Page)**: An endless runner minigame hidden on the 404 page where you control a ghost jumping over obstacles.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 🎉 Party Tracker Mode
+A live event companion app designed to track stats during parties.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+*   **Live Dashboard (`/party`)**: Real-time stats for drinks, water, and games.
+*   **Leaderboards**: Track who is the "Hydration Hero" vs. the "Party Animal".
+*   **Betting & Props**: Guests can place bets on party outcomes (Over/Under).
+*   **NFC Integration**: fast tracking via NFC tags mapped to specific actions.
 
-## Learn More
+For detailed Party Tracker documentation, see **[PARTY_README.md](./PARTY_README.md)**.
 
-To learn more about Next.js, take a look at the following resources:
+### 📸 Photos Management
+A complete photo gallery and management system.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+*   **Public Gallery (`/photos`)**: Browse photos with infinite scroll.
+*   **AI Art Styles**: View AI-generated variations of photos with an interactive comparison slider.
+*   **Admin Panel (`/photos/manage`)**: securely upload and manage photo assets.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🛠️ Getting Started
 
-## Deploy on Vercel
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/stickerface.git
+    cd stickerface/frontend
+    ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3.  **Set up Environment Variables:**
+    Create a `.env.local` file in the `frontend` directory with the following:
 
-## Photos Page Features
+    ```env
+    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+    SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+    BLOB_READ_WRITE_TOKEN=your_vercel_blob_token
+    
+    # Optional
+    NEXT_PUBLIC_DEBUG=true  # Enables debug features in minigames (e.g. Ride The Bus cheats)
+    ```
 
-The application now includes a comprehensive Photos management system:
+4.  **Run the development server:**
+    ```bash
+    npm run dev
+    ```
 
-- **Gallery**: A public-facing gallery displaying photos with infinite scroll and masonry layout.
-- **Photo Details**: Individual pages for each photo, featuring:
-  - **Image Comparison Slider**: Compare original photos with AI-generated art styles.
-  - **Download Assets**: Download original and generated images as a ZIP file.
-- **Management Interface**: A secure admin area to upload, edit, and delete photos.
-  - **Auto-generated Slugs**: SEO-friendly URLs.
-  - **Art Style Management**: Upload multiple art styles per photo.
-  - **Video Support**: Attach videos to photos.
+5.  **Open the app:**
+    Visit [http://localhost:3000](http://localhost:3000)
 
-## Environment Variables
+## 🏗️ Project Structure
 
-The following environment variables are required for the application to function:
+*   `src/app`: App Router pages and layouts.
+*   `src/components/stickers`: Components for individual minigames.
+*   `src/components/party`: Components for the Party Tracker.
+*   `src/lib`: Utility functions and Supabase clients.
 
-| Variable | Description |
-| --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | URL of your Supabase project. |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anonymous public key for Supabase. |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service role key for admin operations (server-side only). |
-| `BLOB_READ_WRITE_TOKEN` | Token for Vercel Blob storage access. |
+## 🧪 Testing
 
-## Future Developer Guide
-
-### Running the Project
-
-To start the development server:
-
-```bash
-npm run dev
-```
-
-### Running Tests
-
-This project uses Jest and React Testing Library for unit and integration tests.
-
-To run the test suite:
+Run the test suite with:
 
 ```bash
 npm test
 ```
 
-### Project Structure
+## 🤝 Contributing
 
-- `src/app/photos`: Main photos page and dynamic routes.
-- `src/app/photos/manage`: Admin interface for managing photos.
-- `src/components/photos`: Reusable components like `PhotoForm` and `ImageComparisonSlider`.
-- `src/lib`: Utilities for Supabase, storage, and video processing.
-
-## Deprecated Files
-
-The following files are deprecated and can be safely removed in future cleanups:
-
-- frontend/public/images/photos
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
