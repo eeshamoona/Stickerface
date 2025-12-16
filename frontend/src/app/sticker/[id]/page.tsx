@@ -13,6 +13,7 @@ import FortuneSticker from "../../../components/stickers/FortuneSticker";
 import PerfectDayToRememberSticker from "../../../components/stickers/PerfectDayToRememberSticker";
 import SpellSticker from "../../../components/stickers/SpellSticker";
 import PurrfectTiming from "../../../components/stickers/purrfectTiming";
+import RideTheBusSticker from "../../../components/stickers/RideTheBusSticker";
 
 export default function StickerPage() {
   // const router = useRouter(); // Removed unused variable
@@ -52,17 +53,20 @@ export default function StickerPage() {
         return <PerfectDayToRememberSticker character={character} />;
       case "button":
         return <DoNotPressButton />;
+      case "ride-the-bus":
+        return <RideTheBusSticker />;
       default:
         return <div>Coming soon!</div>;
     }
   };
 
   return (
+    // TODO: fix this bandaid fix for the height issue
     <div
-      className="sticker-page flex flex-col items-center h-screen p-4"
+      className="sticker-page flex flex-col items-center h-[93.25vh] p-4"
       style={{ backgroundColor: `${sticker.color}80` }}
     >
-      <div className="sticker-content-container w-full max-w-md h-full flex-grow flex flex-col justify-center p-4 bg-white rounded-2xl shadow-lg">
+      <div className="sticker-content-container w-full max-w-md h-full flex-grow flex flex-col justify-center bg-white rounded-2xl shadow-lg overflow-hidden">
         {renderStickerContent()}
       </div>
     </div>
