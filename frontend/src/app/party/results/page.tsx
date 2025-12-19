@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { getCurrentPartySession, getMetricCount, determineBetOutcome } from '@/lib/party-utils';
+import { usePartyAuth } from '@/context/PartyAuthContext';
 
 interface BetResult {
     id: string;
@@ -22,10 +24,12 @@ interface Award {
 }
 
 export default function ResultsPage() {
+    const { guestId } = usePartyAuth();
     const [betResults, setBetResults] = useState<BetResult[]>([]);
     const [globalStats, setGlobalStats] = useState<Record<string, number>>({});
     const [awards, setAwards] = useState<Award[]>([]);
     const [loading, setLoading] = useState(true);
+    const [myGuestName, setMyGuestName] = useState<string>('');
 
     useEffect(() => {
         async function fetchResults() {
@@ -38,13 +42,14 @@ export default function ResultsPage() {
                 return;
             }
 
-            // 2. Global Aggregates
+            // 2. Global Aggregates (from Party Guests - likely total running count)
             const actuals: Record<string, number> = {};
             actuals['bottles'] = guests.reduce((sum, g) => sum + (Number(g.stats?.bottles) || 0), 0);
             actuals['games'] = guests.reduce((sum, g) => sum + (Number(g.stats?.games) || 0), 0);
             actuals['bowls'] = guests.reduce((sum, g) => sum + (Number(g.stats?.bowls) || 0), 0);
             actuals['spills'] = guests.reduce((sum, g) => sum + (Number(g.stats?.spills) || 0), 0);
 
+            // Also map legacy keys for the global ticker display
             actuals['total_bottles'] = actuals['bottles'];
             actuals['games_played'] = actuals['games'];
             actuals['total_bowls'] = actuals['bowls'];
@@ -67,18 +72,46 @@ export default function ResultsPage() {
 
             setAwards(awardsData);
 
-            // 4. Calculate Bets
+            setAwards(awardsData);
+
+            // 4. Calculate Bets (Using precise session logic via getMetricCount)
+            const { start_time, end_time } = getCurrentPartySession();
+
+            // Cache metric counts to avoid N+1 queries if multiple questions use same key
+            const metricCache: Record<string, number> = {};
+
+            // Pre-fetch all needed metrics for questions
+            const uniqueKeys = Array.from(new Set(questions.map(q => q.metric_key)));
+            for (const key of uniqueKeys) {
+                try {
+                    metricCache[key] = await getMetricCount(supabase, key, start_time, end_time);
+                } catch (err) {
+                    console.error(`Failed to fetch metric for key: ${key}`, err);
+                    metricCache[key] = 0; // Default to 0 on error
+                }
+            }
+
+            // Identify Current User
+            const myGuest = guests.find(g => g.id === guestId);
+            if (myGuest) {
+                setMyGuestName(myGuest.name);
+            }
+
             const results: BetResult[] = [];
-            guests.forEach(guest => {
+
+            // Only show bets for the current user
+            const guestsToProcess = myGuest ? [myGuest] : [];
+
+            guestsToProcess.forEach(guest => {
                 if (!guest.my_bets) return;
                 questions.forEach(q => {
                     const bet = guest.my_bets[q.id];
                     if (!bet) return;
-                    const actualValue = actuals[q.metric_key] || 0;
 
-                    let isWin = false;
-                    if (bet === 'OVER' && actualValue > q.line) isWin = true;
-                    if (bet === 'UNDER' && actualValue < q.line) isWin = true;
+                    // Use the fetched metric from the cache, fallback to global aggregated actuals if missing (unlikely)
+                    const actualValue = metricCache[q.metric_key] ?? actuals[q.metric_key] ?? 0;
+
+                    const isWin = determineBetOutcome(bet as 'OVER' | 'UNDER', q.line, actualValue);
 
                     results.push({
                         id: `${guest.id}-${q.id}`,
@@ -96,8 +129,17 @@ export default function ResultsPage() {
             setLoading(false);
         }
 
-        fetchResults();
-    }, []);
+        if (guestId) {
+            fetchResults();
+        } else {
+            // If no guestId yet, maybe just fetch globals? 
+            // For now, let's allow it to run even if guestId is null, 
+            // but the 'guestsToProcess' will be empty, so no bets shown.
+            // Actually, wait - if I put `if (guestId)` here, it won't load globals until auth is ready.
+            // That is safer.
+            fetchResults();
+        }
+    }, [guestId]);
 
     if (loading) {
         return (
@@ -167,7 +209,9 @@ export default function ResultsPage() {
 
                 {/* 3. Betting Results */}
                 <section>
-                    <h2 className="text-lg font-bold text-gray-800 mb-4 px-1">Your Bets</h2>
+                    <h2 className="text-lg font-bold text-gray-800 mb-4 px-1">
+                        {myGuestName ? `${myGuestName}'s Bets` : 'Your Bets'}
+                    </h2>
                     {betResults.length === 0 ? (
                         <div className="p-8 bg-white rounded-2xl border border-dashed border-gray-200 text-center text-gray-400">
                             No bets were settled.

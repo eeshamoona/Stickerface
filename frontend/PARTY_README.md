@@ -68,22 +68,20 @@ npm test
 Hello, future agent! Here is the critical context you need to understand the data flow.
 
 ### 1. Data Model (Single Source of Truth)
-We do **not** use relational tables for individual actions (e.g., a "drinks" table). Instead, we use `JSONB` columns on the `party_guests` table for speed and simplicity in this MVP.
+We do **not** use relational tables for individual actions (e.g., a "drinks" table). Instead, we use `JSONB` columns on the `party_guests` table for speed and simplicity.
 *   **`party_guests.stats`**: `{ "drinks": 5, "water": 2, "bottles": 0, ... }`
 *   **`party_guests.my_bets`**: `{ "question_id_123": "OVER", "question_id_456": "UNDER" }`
 
 ### 2. Aggregation Logic
 *   **Dashboard (`/party`)**: Subscribes to `party_guests` via Supabase Realtime. It calculates Global Totals (Bottles/Games) by performing a `.reduce()` on the guest list client-side.
-*   **Results (`/party/results`)**: Does the exact same thing (client-side aggregation) to ensure numbers match the dashboard 100%.
+*   **Results (`/party/results`)**: Uses `getMetricCount` helper in `party-utils.ts` which queries `party_guests` stats to resolve bets definitively.
 
-### 3. Legacy Code (Do Not Use)
-*   **`party_actions` table**: We moved away from logging individual actions to just incrementing the JSONB counters. This table is deprecated.
-*   **`settleBetsForSession` (in `party-utils.ts`)**: This function relies on `party_actions`. **Do not use it.** Use the aggregation logic found in `party/results/page.tsx` instead.
+### 3. Removed / Deprecated
+*   **`settleBetsForSession`**: Removed in favor of direct metric calculation in `party-utils.ts` / `results/page.tsx`.
 
 ---
 
 ## 🛠 Technical Debt / TODOs
-*   [ ] **Cleanup**: Remove `party_actions` table and related unused RPCs.
 *   [ ] **Refactor**: Move the client-side aggregation logic (currently duplicated in Dashboard and Results) into a shared utility function in `party-utils.ts`.
 *   [ ] **Auth**: Currently "Auth" is just selecting a User ID. In the future, implement a real PIN or session cookie for guests to prevent spoofing.
 
