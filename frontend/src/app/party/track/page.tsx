@@ -131,11 +131,15 @@ function TrackContent() {
                     >
                         Track Another +1
                     </button>
+
+                    <button
+                        onClick={() => router.push('/party')}
+                        className="w-full py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-xl transition-colors"
+                    >
+                        Go to Leaderboard
+                    </button>
                 </div>
 
-                <div className="mt-6 text-sm text-gray-400">
-                    Redirecting to hub...
-                </div>
             </div>
         );
     }
@@ -175,9 +179,9 @@ function TrackContent() {
 
             <button
                 onClick={() => router.push('/party')}
-                className="mt-6 text-gray-400 hover:text-gray-600 underline text-sm"
+                className="mt-4 py-4 w-full rounded-xl border-2 border-transparent hover:border-indigo-100 text-gray-400 font-bold text-sm transition-all"
             >
-                Cancel
+                Back to Leaderboard
             </button>
         </div>
     );
