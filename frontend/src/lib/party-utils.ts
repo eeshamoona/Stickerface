@@ -6,11 +6,6 @@ export interface PartySession {
     end_time: string;   // ISO string
 }
 
-export interface BetResult {
-    bet_id: string;
-    is_win: boolean;
-    actual_value: number;
-}
 
 /**
  * Calculates the current "Party Session" based on the 8 AM rule.
@@ -53,86 +48,57 @@ export function getCurrentPartySession(now: Date = new Date()): PartySession {
  * 
  * @param supabase Supabase Client
  * @param key The betting key (e.g., 'total_bottles', 'eesha_drinks')
- * @param startTime Session start time
- * @param endTime Session end time
- * @returns The count for that metric
+ * @returns The count for that metric (fetched from party_guests stats)
  */
-async function getMetricCount(
+export async function getMetricCount(
     supabase: SupabaseClient,
     key: string,
-    startTime: string,
-    endTime: string
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    startTime?: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    endTime?: string
 ): Promise<number> {
-    // 1. Handle "total_bottles"
-    if (key === 'total_bottles') {
-        const { count, error } = await supabase
-            .from('party_actions')
-            .select('*', { count: 'exact', head: true })
-            .eq('action_type', 'BOTTLE')
-            .gte('created_at', startTime)
-            .lte('created_at', endTime);
+    // NOTE: 'startTime' and 'endTime' are unused because we read running totals 
+    // directly from the 'party_guests' table, which acts as the single source of truth.
+
+    // 1. Handle Global Aggregates (Sum of all guests)
+    // Keys: total_bottles/bottles, games_played/games, total_spills/spills, bowls
+    if (['total_bottles', 'bottles', 'games_played', 'games', 'total_spills', 'spills', 'bowls', 'total_bowls'].includes(key)) {
+        const { data: guests, error } = await supabase
+            .from('party_guests')
+            .select('stats');
 
         if (error) throw error;
-        return count || 0;
+        if (!guests) return 0;
+
+        let prop = '';
+        if (key.includes('bottle')) prop = 'bottles';
+        else if (key.includes('game')) prop = 'games';
+        else if (key.includes('spill')) prop = 'spills';
+        else if (key.includes('bowl')) prop = 'bowls';
+
+        return guests.reduce((acc, g) => acc + (Number(g.stats?.[prop]) || 0), 0);
     }
 
-    // 2. Handle "games_played"
-    if (key === 'games_played') {
-        const { count, error } = await supabase
-            .from('party_actions')
-            .select('*', { count: 'exact', head: true })
-            .eq('action_type', 'GAME')
-            .gte('created_at', startTime)
-            .lte('created_at', endTime);
-
-        if (error) throw error;
-        return count || 0;
-    }
-
-    // 3. Handle "total_spills"
-    if (key === 'total_spills') {
-        const { count, error } = await supabase
-            .from('party_actions')
-            .select('*', { count: 'exact', head: true })
-            .eq('action_type', 'SPILL')
-            .gte('created_at', startTime)
-            .lte('created_at', endTime);
-
-        if (error) throw error;
-        return count || 0;
-    }
-
-    // 3. Handle "{name}_drinks"
-    if (key.endsWith('_drinks')) {
-        const namePart = key.replace('_drinks', '');
+    // 2. Handle Individual Stats ({name}_drinks, {name}_water)
+    if (key.endsWith('_drinks') || key.endsWith('_water')) {
+        const isWater = key.endsWith('_water');
+        const namePart = key.replace(isWater ? '_water' : '_drinks', '');
 
         // Find guest by name (case-insensitive ILIKE)
-        // Note: We need to search for the guest first to get their ID.
-        // Ideally, we'd cache this or join, but for MVP this is fine.
         const { data: guests, error: guestError } = await supabase
             .from('party_guests')
-            .select('id')
+            .select('stats')
             .ilike('name', `%${namePart}%`)
             .limit(1);
 
         if (guestError) throw guestError;
         if (!guests || guests.length === 0) {
             console.warn(`Guest not found for bet key: ${key}`);
-            return 0; // Or throw? For betting settlement, 0 implies loss usually.
+            return 0;
         }
 
-        const guestId = guests[0].id;
-
-        const { count, error } = await supabase
-            .from('party_actions')
-            .select('*', { count: 'exact', head: true })
-            .eq('action_type', 'DRINK')
-            .eq('guest_id', guestId)
-            .gte('created_at', startTime)
-            .lte('created_at', endTime);
-
-        if (error) throw error;
-        return count || 0;
+        return Number(guests[0].stats?.[isWater ? 'water' : 'drinks']) || 0;
     }
 
     console.warn(`Unknown bet key: ${key}`);
@@ -155,62 +121,3 @@ export function determineBetOutcome(prediction: 'OVER' | 'UNDER', lineValue: num
     }
 }
 
-/**
- * Main function to settle bets for a session.
- * WARNING: This is expensive if there are many bets.
- */
-export async function settleBetsForSession(
-    supabase: SupabaseClient,
-    startTime: string,
-    endTime: string,
-    bettingLines: Record<string, number>
-): Promise<BetResult[]> {
-
-    // Fetch all bets for this session (or generic 'OPEN' bets if tracking by status, 
-    // but plan implies we settle based on what happened in the timeframe)
-    // Actually, 'party_bets' has a created_at. We should probably settle bets created 
-    // generally? Or just ALL bets that haven't been settled? 
-    // For MVP: Fetch ALL bets created within the session wrapper? 
-    // Or just "current active bets". The prompt implies specific party_config for the night.
-    // Let's assume we fetch all bets created in this timeframe for simplicity, or just ALL bets in the table 
-    // if we truncate/clear table. 
-    // Let's filter by created_at between session start/end to be safe.
-
-    const { data: bets, error } = await supabase
-        .from('party_bets')
-        .select('*')
-        .gte('created_at', startTime)
-        .lte('created_at', endTime);
-
-    if (error) throw error;
-    if (!bets) return [];
-
-    const results: BetResult[] = [];
-
-    // Cache metric counts to avoid re-querying for every bet
-    const metricCache: Record<string, number> = {};
-
-    for (const bet of bets) {
-        const key = bet.bet_target;
-        let actualValue = metricCache[key];
-
-        if (actualValue === undefined) {
-            actualValue = await getMetricCount(supabase, key, startTime, endTime);
-            metricCache[key] = actualValue;
-        }
-
-        const line = bettingLines[key];
-        // If no line exists for this target, we can't settle it. Mark as loss or ignore?
-        // Let's assume line exists.
-        if (line !== undefined) {
-            const isWin = determineBetOutcome(bet.prediction, line, actualValue);
-            results.push({
-                bet_id: bet.id,
-                is_win: isWin,
-                actual_value: actualValue
-            });
-        }
-    }
-
-    return results;
-}
