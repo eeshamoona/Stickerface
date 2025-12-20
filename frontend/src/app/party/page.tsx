@@ -124,10 +124,6 @@ export default function PartyPage() {
 
     // Filter Logic: Hide Remy/Zeba if they have 0 stats
     const shouldShowGuest = (g: PartyGuest, metric: 'drinks' | 'water') => {
-        if (['Jordan', 'Victoria', 'Mando'].includes(g.name)) return false; // Always hide special roles
-        if (['Remy', 'Zeba'].includes(g.name)) {
-            return (g.stats?.[metric] || 0) > 0;
-        }
         return true;
     };
 
