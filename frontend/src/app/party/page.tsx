@@ -122,11 +122,6 @@ export default function PartyPage() {
     // Derived State
     const myUser = guests.find(g => g.id === guestId);
 
-    // Filter Logic: Hide Remy/Zeba if they have 0 stats
-    const shouldShowGuest = (g: PartyGuest, metric: 'drinks' | 'water') => {
-        return true;
-    };
-
     // Sorts
     const sortedByDrinks = [...guests].sort((a, b) => (Number(b.stats?.drinks) || 0) - (Number(a.stats?.drinks) || 0));
     const sortedByWater = [...guests].sort((a, b) => (Number(b.stats?.water) || 0) - (Number(a.stats?.water) || 0));
@@ -200,7 +195,6 @@ export default function PartyPage() {
                 ) : activeTab === 'LEADERBOARD' ? (
                     <div className="space-y-3">
                         {sortedByDrinks
-                            .filter(g => shouldShowGuest(g, 'drinks'))
                             .map((guest, index) => (
                                 <div key={guest.id} className={`flex items-center justify-between p-4 rounded-xl shadow-sm border transition-shadow ${guest.id === guestId ? 'bg-white border-indigo-200 ring-4 ring-indigo-50/50' : 'bg-white border-transparent'}`}>
                                     <div className="flex items-center space-x-4">
@@ -224,7 +218,6 @@ export default function PartyPage() {
                 ) : activeTab === 'HYDRATION' ? (
                     <div className="space-y-3">
                         {sortedByWater
-                            .filter(g => shouldShowGuest(g, 'water'))
                             .map((guest, index) => (
                                 <div key={guest.id} className={`flex items-center justify-between p-4 rounded-xl shadow-sm border transition-shadow ${guest.id === guestId ? 'bg-white border-blue-200 ring-4 ring-blue-50/50' : 'bg-white border-transparent'}`}>
                                     <div className="flex items-center space-x-4">
