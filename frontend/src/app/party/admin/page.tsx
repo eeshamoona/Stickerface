@@ -238,7 +238,6 @@ export default function AdminPage() {
                 <h2 className="text-xl font-bold mb-4 border-b border-gray-200 pb-2 text-indigo-900">Guest Quick Actions</h2>
                 <div className="space-y-2">
                     {guests
-                        .filter(g => !['Jordan', 'Victoria', 'Mando'].includes(g.name)) // Optional: Hide special roles from general list if desired, or keep them. Let's hide to declutter.
                         .map(g => (
                             <div key={g.id} className="bg-white border border-gray-100 p-3 rounded-lg shadow-sm flex justify-between items-center">
                                 <div className="flex items-center space-x-2 w-32">
